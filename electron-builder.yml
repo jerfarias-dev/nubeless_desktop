@@ -1,0 +1,46 @@
+appId: com.passwordmanager.v2
+productName: Password Manager
+copyright: Copyright © 2024
+
+directories:
+  buildResources: resources
+  output: dist
+
+files:
+  - out/**/*
+  - node_modules/**/*
+  - "!node_modules/.cache/**/*"
+
+asarUnpack:
+  - "node_modules/better-sqlite3/**/*"
+
+mac:
+  category: public.app-category.utilities
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+  icon: resources/icon.icns
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: resources/icon.ico
+
+linux:
+  target:
+    - target: AppImage
+      arch: [x64]
+  category: Utility
+  icon: resources/icon.png
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+
+publish: null
+
+electronDownload:
+  mirror: https://github.com/electron/electron/releases/download/

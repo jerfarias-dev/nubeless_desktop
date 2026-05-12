@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    @apply bg-surface text-white;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { @apply rounded-full bg-white/10; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-white/20; }
+}
+
+@layer components {
+  .field-label {
+    @apply mb-1 block text-xs font-medium text-slate-400;
+  }
+
+  .field-input {
+    @apply w-full rounded-lg bg-surface-input px-3 py-2 text-sm text-white
+           placeholder-slate-500 outline-none ring-1 ring-white/10
+           focus:ring-accent transition;
+  }
+
+  /* Electron window drag regions */
+  .drag-region {
+    -webkit-app-region: drag;
+    app-region: drag;
+  }
+  .no-drag {
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
+  }
+
+  .sidebar-sub-btn {
+    @apply flex w-full items-center gap-2 rounded-md px-2 py-1.5
+           text-xs text-slate-400 hover:bg-surface-hover hover:text-white transition;
+  }
+}
