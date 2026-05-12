@@ -67,5 +67,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     }
   },
 
+  // Window controls (solo Windows)
+  win: {
+    minimize: () => invoke<void>('win:minimize'),
+    maximize: () => invoke<void>('win:maximize'),
+    close:    () => invoke<void>('win:close')
+  },
+
   platform: process.platform
 })

@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Lock, Eye, EyeOff, ShieldCheck } from 'lucide-react'
 import { useStore } from '../store/useStore'
+import WinTitleBar from '../components/WinTitleBar'
+
+const isWin = window.electronAPI.platform === 'win32'
 
 export default function LoginPage() {
   const { isFirstTime, login, createMaster } = useStore()
@@ -41,7 +44,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-surface p-4">
+    <div className="flex min-h-screen flex-col bg-surface">
+      {isWin && <WinTitleBar />}
+      <div className="flex flex-1 items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="mb-8 text-center">
@@ -135,6 +140,7 @@ export default function LoginPage() {
             </p>
           )}
         </form>
+      </div>
       </div>
     </div>
   )

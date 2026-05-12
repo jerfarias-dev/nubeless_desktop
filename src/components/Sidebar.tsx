@@ -11,6 +11,7 @@ interface Props {
 }
 
 const isMac = window.electronAPI.platform === 'darwin'
+const isWin = window.electronAPI.platform === 'win32'
 
 export default function Sidebar({ onManageCategories, onSync }: Props) {
   const { logout, accounts, categories, setStatus } = useStore()
@@ -75,7 +76,7 @@ export default function Sidebar({ onManageCategories, onSync }: Props) {
   return (
     <aside className="flex h-full w-56 flex-col bg-surface-card">
       {/* Logo — drag region para arrastrar la ventana */}
-      <div className={`drag-region flex items-center gap-2.5 border-b border-white/5 px-4 ${isMac ? 'pt-8 pb-3' : 'py-4'}`}>
+      <div className={`drag-region flex items-center gap-2.5 border-b border-white/5 px-4 ${isMac ? 'pt-8 pb-3' : isWin ? 'py-3' : 'py-4'}`}>
         <ShieldCheck className="no-drag h-6 w-6 text-accent" />
         <span className="no-drag font-semibold text-white">Password Mgr</span>
       </div>

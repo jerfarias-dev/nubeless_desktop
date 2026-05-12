@@ -67,6 +67,15 @@ app.whenReady().then(() => {
     if (/^https?:\/\//.test(url)) shell.openExternal(url)
   })
 
+  // Window controls (usados por la barra de título personalizada en Windows)
+  ipcMain.handle('win:minimize', (e) => { BrowserWindow.fromWebContents(e.sender)?.minimize() })
+  ipcMain.handle('win:maximize', (e) => {
+    const win = BrowserWindow.fromWebContents(e.sender)
+    if (!win) return
+    win.isMaximized() ? win.unmaximize() : win.maximize()
+  })
+  ipcMain.handle('win:close', (e) => { BrowserWindow.fromWebContents(e.sender)?.close() })
+
   // File dialog for vault export/import
   ipcMain.handle('dialog:saveFile', async (_event, filters: Electron.FileFilter[]) => {
     const result = await dialog.showSaveDialog({ filters })

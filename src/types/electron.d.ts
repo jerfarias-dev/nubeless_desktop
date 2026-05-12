@@ -52,6 +52,11 @@ export type SyncEventType =
 
 export interface ElectronAPI {
   platform: string
+  win: {
+    minimize(): Promise<void>
+    maximize(): Promise<void>
+    close():    Promise<void>
+  }
   auth: {
     isFirstTime():             Promise<boolean>
     createMaster(pwd: string): Promise<void>

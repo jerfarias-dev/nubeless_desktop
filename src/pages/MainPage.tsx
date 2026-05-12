@@ -7,7 +7,10 @@ import AccountTable from '../components/AccountTable'
 import AccountDialog from '../components/AccountDialog'
 import CategoryManager from '../components/CategoryManager'
 import SyncDialog from '../components/SyncDialog'
+import WinTitleBar from '../components/WinTitleBar'
 import type { Account } from '../types/electron'
+
+const isWin = window.electronAPI.platform === 'win32'
 
 export default function MainPage() {
   const { statusMessage, filteredAccounts } = useStore()
@@ -23,7 +26,12 @@ export default function MainPage() {
   const closeDialog = () => { setShowAccountDialog(false); setEditingAccount(undefined) }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-surface text-white">
+    <div className="flex h-screen flex-col overflow-hidden bg-surface text-white">
+      {/* Barra de título personalizada — solo Windows */}
+      {isWin && <WinTitleBar />}
+
+      {/* Contenido principal */}
+      <div className="flex flex-1 overflow-hidden">
       {/* Sidebar */}
       <Sidebar
         onManageCategories={() => setShowCategoryManager(true)}
@@ -77,6 +85,8 @@ export default function MainPage() {
           )}
         </footer>
       </div>
+
+      </div>{/* fin flex contenido principal */}
 
       {/* Dialogs */}
       {showAccountDialog && (
