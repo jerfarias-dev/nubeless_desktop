@@ -41,17 +41,60 @@ npm install
 npm run dev
 ```
 
-## Build
+## Build y distribución
+
+> ⚠️ **Importante:** electron-builder solo puede empaquetar para la plataforma desde la que se ejecuta. Para generar un instalador Windows necesitas compilar en Windows, y viceversa para macOS.
+
+### macOS (genera `.dmg`)
 
 ```bash
-# Compilar + empaquetar para la plataforma actual
 npm run build
+```
 
-# Solo compilar sin empaquetar (más rápido para pruebas)
+Esto produce dos archivos en `dist/`:
+
+| Archivo | Arquitectura | Para |
+|---------|-------------|------|
+| `Password Manager-1.0.0.dmg` | x64 (Intel) | Macs Intel |
+| `Password Manager-1.0.0-arm64.dmg` | arm64 | Apple Silicon (M1/M2/M3/M4) |
+
+**Instalación:**
+1. Doble clic al `.dmg` correspondiente a tu Mac
+2. Arrastra la app a la carpeta **Aplicaciones**
+3. Abre desde Launchpad o Aplicaciones
+
+> La primera vez que la abras macOS puede bloquearla por no estar firmada con un Apple Developer ID. Para permitirla: **Ajustes del Sistema → Privacidad y Seguridad → Abrir de todos modos**.
+
+### Windows (genera instalador `.exe`)
+
+```bash
+npm run build
+```
+
+Esto produce el instalador NSIS en `dist/`:
+
+| Archivo | Para |
+|---------|------|
+| `Password Manager Setup 1.0.0.exe` | Windows x64 |
+
+**Instalación:**
+1. Doble clic al `.exe`
+2. Acepta el aviso de SmartScreen (es normal en apps sin firma comercial: clic en **Más información → Ejecutar de todas formas**)
+3. Elige carpeta de instalación
+4. Marca **crear acceso directo en el escritorio**
+5. La app aparece en el menú Inicio como _Password Manager_
+
+### Compilar sin empaquetar (para pruebas rápidas)
+
+```bash
 npm run build:unpack
 ```
 
-Los binarios se generan en `dist/`.
+Genera la app sin envolverla en `.dmg` o `.exe`. Útil para depurar el build.
+
+### Compilación cruzada
+
+electron-builder permite compilar para Windows desde macOS/Linux (necesita `wine`), pero **no al revés**. Recomendación: para releases oficiales, compila cada plataforma en su propio sistema.
 
 ## Estructura del proyecto
 

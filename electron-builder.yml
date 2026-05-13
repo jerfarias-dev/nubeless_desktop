@@ -1,46 +1,57 @@
-appId: com.passwordmanager.v2
+appId: com.tucorp.passwordmanager
 productName: Password Manager
-copyright: Copyright © 2024
+copyright: Copyright © 2025
 
 directories:
   buildResources: resources
   output: dist
 
+# electron-vite bundlea todo — solo necesitamos out/ y la native lib
 files:
   - out/**/*
-  - node_modules/**/*
-  - "!node_modules/.cache/**/*"
+  - node_modules/better-sqlite3/**/*
+  - node_modules/bindings/**/*
+  - node_modules/file-uri-to-path/**/*
+  - "!node_modules/**/.github/**"
+  - "!node_modules/**/test/**"
+  - "!node_modules/**/docs/**"
 
 asarUnpack:
-  - "node_modules/better-sqlite3/**/*"
+  - node_modules/better-sqlite3/**/*
+  - node_modules/bindings/**/*
+  - node_modules/file-uri-to-path/**/*
 
 mac:
   category: public.app-category.utilities
+  icon: resources/icon.icns
   target:
     - target: dmg
       arch: [x64, arm64]
-  icon: resources/icon.icns
+  darkModeSupport: true
+
+dmg:
+  title: Password Manager
+  backgroundColor: "#1a1a2e"
+  window:
+    width: 540
+    height: 380
 
 win:
+  icon: resources/icon.ico
   target:
     - target: nsis
       arch: [x64]
-  icon: resources/icon.ico
-
-linux:
-  target:
-    - target: AppImage
-      arch: [x64]
-  category: Utility
-  icon: resources/icon.png
 
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
+  shortcutName: Password Manager
 
-publish: null
-
-electronDownload:
-  mirror: https://github.com/electron/electron/releases/download/
+linux:
+  icon: resources/icon.png
+  category: Utility
+  target:
+    - target: AppImage
+      arch: [x64]
