@@ -46,6 +46,8 @@ export function registerVaultHandlers(crypto: CryptoService, userDataPath: strin
     const insert = db.transaction((rows: AccountRow[]) => {
       for (const row of rows) {
         insertAccountRaw({
+          // Si el export no tenía uuid (versión vieja), insertAccountRaw genera uno.
+          uuid:        row.uuid ?? '',
           platform:    row.platform,
           username:    row.username,
           password:    row.password,
@@ -53,8 +55,10 @@ export function registerVaultHandlers(crypto: CryptoService, userDataPath: strin
           is_favorite: row.is_favorite,
           notes:       row.notes,
           url:         row.url,
+          totp_secret: row.totp_secret ?? '',
           created_at:  row.created_at,
-          updated_at:  row.updated_at
+          updated_at:  row.updated_at,
+          deleted_at:  row.deleted_at ?? null
         })
       }
     })
@@ -112,13 +116,16 @@ export function registerVaultHandlers(crypto: CryptoService, userDataPath: strin
         const catId = catMap.get((category ?? '').toLowerCase()) ?? defaultCat
         const encPwd = crypto.encryptPassword(password)
         insertAccountRaw({
+          uuid: '',  // auto-generado por insertAccountRaw
           platform, username, password: encPwd,
           category_id: catId,
           is_favorite: favorite?.toLowerCase() === 'yes' ? 1 : 0,
           notes: notes ?? '',
           url: url ?? '',
+          totp_secret: '',
           created_at: now,
-          updated_at: now
+          updated_at: now,
+          deleted_at: null
         })
         imported++
       }

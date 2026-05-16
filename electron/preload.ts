@@ -12,7 +12,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     createMaster:   (pwd: string) => invoke<void>('auth:createMaster', pwd),
     login:          (pwd: string) => invoke<boolean>('auth:login', pwd),
     logout:         ()           => invoke<void>('auth:logout'),
-    verifyPassword: (pwd: string) => invoke<boolean>('auth:verifyPassword', pwd)
+    verifyPassword: (pwd: string) => invoke<boolean>('auth:verifyPassword', pwd),
+    changeMasterPassword: (oldPwd: string, newPwd: string) =>
+      invoke<{ ok: true } | { ok: false; reason: 'wrong-old-password' }>(
+        'auth:changeMasterPassword', oldPwd, newPwd
+      )
   },
 
   // Accounts
@@ -65,6 +69,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.on('sync:event', (_e, data) => cb(data))
       return () => ipcRenderer.removeAllListeners('sync:event')
     }
+  },
+
+  // TOTP / 2FA
+  totp: {
+    generate: (secret: string) =>
+      invoke<{ code: string; secondsRemaining: number; stepSeconds: number }>('totp:generate', secret),
+    validate: (secret: string) => invoke<boolean>('totp:validate', secret)
+  },
+
+  // Backups
+  backup: {
+    create:     ()                   => invoke<unknown>('backup:create'),
+    list:       ()                   => invoke<unknown[]>('backup:list'),
+    restore:    (fileName: string)   => invoke<number>('backup:restore', fileName),
+    delete:     (fileName: string)   => invoke<void>('backup:delete', fileName),
+    openFolder: ()                   => invoke<void>('backup:openFolder')
   },
 
   // Window controls (solo Windows)

@@ -158,6 +158,51 @@ export class CryptoService {
     return decipher.update(encrypted) + decipher.final('utf8')
   }
 
+  // --- Master password change ---
+
+  /**
+   * Cambia la contraseña maestra: re-deriva con un nuevo salt y delega al
+   * orchestrator el re-cifrado de TODOS los campos cifrados del vault.
+   *
+   * El orchestrator recibe `oldKey` y `newKey` y es responsable de:
+   *  - Leer todos los datos del DB (cuentas, sus passwords, totp_secrets, etc.)
+   *  - Descifrar con oldKey y re-cifrar con newKey
+   *  - Persistir los cambios en una transacción
+   *
+   * Devuelve `false` si la contraseña vieja es incorrecta. Lanza si algo falla
+   * durante el re-cifrado o las escrituras a disco — el llamador debe asegurarse
+   * de haber tomado un backup defensivo antes.
+   */
+  changeMasterPassword(
+    oldPassword: string,
+    newPassword: string,
+    reEncryptVaultData: (oldKey: Buffer, newKey: Buffer) => void
+  ): boolean {
+    if (!this.verifyPassword(oldPassword)) return false
+    if (!this.derivedKey) throw new Error('Vault is locked')
+
+    const oldKey = this.derivedKey
+
+    // 1. Nuevo salt + clave nueva
+    const newSalt = randomBytes(SALT_LENGTH)
+    const newKey  = this.deriveKey(newPassword, newSalt)
+    const newVerify = this.encrypt(VERIFY_PLAINTEXT, newKey)
+
+    // 2. El orchestrator re-cifra TODOS los campos cifrados en una transacción.
+    //    Si falla aquí, no hemos tocado salt ni verify todavía → el vault sigue
+    //    siendo accesible con la contraseña vieja.
+    reEncryptVaultData(oldKey, newKey)
+
+    // 3. Punto de no retorno: persistir salt y verify nuevos
+    writeFileSync(this.saltPath, newSalt)
+    writeFileSync(this.verifyPath, newVerify, 'utf8')
+
+    // 4. Swap key en memoria + limpieza de la vieja
+    oldKey.fill(0)
+    this.derivedKey = newKey
+    return true
+  }
+
   // --- Export/import vault ---
 
   encryptVaultData(jsonData: string): Buffer {

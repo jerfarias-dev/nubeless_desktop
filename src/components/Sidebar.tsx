@@ -1,19 +1,22 @@
 import { useState } from 'react'
 import {
   ShieldCheck, LogOut, Download, Upload,
-  FileDown, FileUp, Settings, ChevronDown, ChevronRight, Smartphone
+  FileDown, FileUp, Settings, Tags, ChevronDown, ChevronRight, Smartphone,
+  AlertTriangle, Repeat
 } from 'lucide-react'
 import { useStore } from '../store/useStore'
+import { summarizeHealth } from '../utils/passwordHealth'
 
 interface Props {
   onManageCategories(): void
   onSync(): void
+  onOpenSettings(): void
 }
 
 const isMac = window.electronAPI.platform === 'darwin'
 const isWin = window.electronAPI.platform === 'win32'
 
-export default function Sidebar({ onManageCategories, onSync }: Props) {
+export default function Sidebar({ onManageCategories, onSync, onOpenSettings }: Props) {
   const { logout, accounts, categories, setStatus } = useStore()
   const [vaultOpen, setVaultOpen] = useState(false)
 
@@ -72,6 +75,7 @@ export default function Sidebar({ onManageCategories, onSync }: Props) {
   }
 
   const totalFavs = accounts.filter(a => a.is_favorite).length
+  const health = summarizeHealth(accounts)
 
   return (
     <aside className="flex h-full w-56 flex-col bg-surface-card">
@@ -93,6 +97,30 @@ export default function Sidebar({ onManageCategories, onSync }: Props) {
             <p className="text-xs text-slate-500">Favoritas</p>
           </div>
         </div>
+
+        {/* Salud — solo aparece si hay algo que reportar */}
+        {(health.weak > 0 || health.duplicated > 0) && (
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {health.weak > 0 && (
+              <div
+                className="flex items-center gap-1.5 rounded-lg bg-amber-500/10 px-2.5 py-1.5"
+                title={`${health.weak} contraseñas son débiles (cortas o sin variedad)`}
+              >
+                <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
+                <span className="text-xs font-medium text-amber-300">{health.weak} débiles</span>
+              </div>
+            )}
+            {health.duplicated > 0 && (
+              <div
+                className="flex items-center gap-1.5 rounded-lg bg-red-500/10 px-2.5 py-1.5"
+                title={`${health.duplicated} cuentas usan contraseñas duplicadas`}
+              >
+                <Repeat className="h-3.5 w-3.5 text-red-400" />
+                <span className="text-xs font-medium text-red-300">{health.duplicated} repetidas</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Categories */}
@@ -170,8 +198,16 @@ export default function Sidebar({ onManageCategories, onSync }: Props) {
           onClick={onManageCategories}
           className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-surface-hover hover:text-white"
         >
-          <Settings className="h-4 w-4" />
+          <Tags className="h-4 w-4" />
           Categorías
+        </button>
+
+        <button
+          onClick={onOpenSettings}
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-surface-hover hover:text-white"
+        >
+          <Settings className="h-4 w-4" />
+          Configuración
         </button>
 
         <button

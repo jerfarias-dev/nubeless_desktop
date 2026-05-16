@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Eye, EyeOff, RefreshCw, Lock } from 'lucide-react'
+import { X, Eye, EyeOff, RefreshCw, Lock, KeyRound, CheckCircle2, AlertCircle } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import PasswordStrength from './PasswordStrength'
 import type { Account, AccountInput, PasswordStrength as PWStrength } from '../types/electron'
@@ -17,6 +17,7 @@ interface FormState {
   category_id: number
   is_favorite: boolean
   notes:       string
+  totp_secret: string
 }
 
 export default function AccountDialog({ account, onClose }: Props) {
@@ -32,14 +33,18 @@ export default function AccountDialog({ account, onClose }: Props) {
     url:         account?.url         ?? '',
     category_id: account?.category_id ?? defaultCatId,
     is_favorite: account?.is_favorite ?? false,
-    notes:       account?.notes       ?? ''
+    notes:       account?.notes       ?? '',
+    totp_secret: account?.totp_secret ?? ''
   })
 
   const [showPwd, setShowPwd]       = useState(false)
+  const [showTotp, setShowTotp]     = useState(false)
   const [strength, setStrength]     = useState<PWStrength | null>(null)
   const [genLength, setGenLength]   = useState(16)
   const [error, setError]           = useState('')
   const [loading, setLoading]       = useState(false)
+  // null = sin evaluar; true/false = resultado de looksLikeBase32
+  const [totpValid, setTotpValid]   = useState<boolean | null>(null)
 
   useEffect(() => {
     if (!form.password) { setStrength(null); return }
@@ -49,6 +54,16 @@ export default function AccountDialog({ account, onClose }: Props) {
     }, 200)
     return () => clearTimeout(t)
   }, [form.password])
+
+  // Validación ligera del secreto TOTP (formato base32) con debounce
+  useEffect(() => {
+    if (!form.totp_secret.trim()) { setTotpValid(null); return }
+    const t = setTimeout(async () => {
+      const ok = await window.electronAPI.totp.validate(form.totp_secret)
+      setTotpValid(ok)
+    }, 300)
+    return () => clearTimeout(t)
+  }, [form.totp_secret])
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm(f => ({ ...f, [key]: value }))
@@ -213,6 +228,39 @@ export default function AccountDialog({ account, onClose }: Props) {
                 Marcar como favorito
               </label>
             </div>
+          </div>
+
+          {/* TOTP / 2FA secret */}
+          <div>
+            <label className="field-label flex items-center gap-1.5">
+              <KeyRound className="h-3.5 w-3.5" />
+              Secreto 2FA (TOTP) — opcional
+            </label>
+            <div className="relative">
+              <input
+                type={showTotp ? 'text' : 'password'}
+                value={form.totp_secret}
+                onChange={e => set('totp_secret', e.target.value)}
+                placeholder="JBSWY3DPEHPK3PXP…  (pega el secreto base32 que te dio el servicio)"
+                className="field-input pr-10 font-mono text-xs"
+                autoComplete="off"
+                spellCheck={false}
+              />
+              <button
+                type="button"
+                onClick={() => setShowTotp(v => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+              >
+                {showTotp ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            {form.totp_secret && totpValid !== null && (
+              <p className={`mt-1 flex items-center gap-1 text-xs ${totpValid ? 'text-green-400' : 'text-amber-400'}`}>
+                {totpValid
+                  ? <><CheckCircle2 className="h-3 w-3" /> Formato base32 válido</>
+                  : <><AlertCircle className="h-3 w-3" /> Esto no parece base32 — revisa que copiaste bien</>}
+              </p>
+            )}
           </div>
 
           {/* Notes */}

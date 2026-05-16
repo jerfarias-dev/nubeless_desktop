@@ -2,17 +2,27 @@ import { app, BrowserWindow, shell, dialog } from 'electron'
 import { join } from 'node:path'
 import { CryptoService } from './crypto/cryptoService'
 import { initDatabase, closeDb } from './db/database'
+import { BackupService } from './backup/backupService'
 import { registerAuthHandlers } from './ipc/auth'
 import { registerAccountHandlers } from './ipc/accounts'
 import { registerCategoryHandlers } from './ipc/categories'
 import { registerGeneratorHandlers } from './ipc/generator'
 import { registerVaultHandlers } from './ipc/vault'
 import { registerSyncHandlers } from './ipc/sync'
+import { registerBackupHandlers } from './ipc/backup'
+import { registerTotpHandlers } from './ipc/totp'
 import { ipcMain } from 'electron'
 
 const isDev = !app.isPackaged
 
 function createWindow(userDataPath: string): BrowserWindow {
+  // En dev el icono del dock/taskbar viene de aquí; en build lo aplica
+  // electron-builder desde resources/icon.* Resolvemos siempre el PNG (es el
+  // único formato que BrowserWindow acepta cross-platform en runtime).
+  const iconPath = isDev
+    ? join(__dirname, '../../resources/icon.png')   // dev: relativo al out/main
+    : join(process.resourcesPath, 'icon.png')
+
   const win = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -20,6 +30,7 @@ function createWindow(userDataPath: string): BrowserWindow {
     minHeight: 600,
     show: false,
     backgroundColor: '#1a1a2e',
+    icon: iconPath,
     titleBarStyle: 'hidden',
     ...(process.platform === 'darwin' && { trafficLightPosition: { x: 14, y: 14 } }),
     webPreferences: {
@@ -51,16 +62,25 @@ function createWindow(userDataPath: string): BrowserWindow {
 app.whenReady().then(() => {
   const userDataPath = app.getPath('userData')
 
+  // macOS dev: el icono del dock no toma el del BrowserWindow, hay que setearlo
+  // explícitamente. En el build empaquetado, electron-builder ya lo asigna correctamente.
+  if (isDev && process.platform === 'darwin' && app.dock) {
+    app.dock.setIcon(join(__dirname, '../../resources/icon.png'))
+  }
+
   const crypto = new CryptoService(userDataPath)
   initDatabase(userDataPath)
+  const backup = new BackupService(crypto, userDataPath)
 
   // Register IPC handlers
-  registerAuthHandlers(crypto)
+  registerAuthHandlers(crypto, backup)
   registerAccountHandlers(crypto)
   registerCategoryHandlers()
   registerGeneratorHandlers()
   registerVaultHandlers(crypto, userDataPath)
   registerSyncHandlers(crypto)
+  registerBackupHandlers(backup)
+  registerTotpHandlers()
 
   // Shell open external
   ipcMain.handle('shell:openExternal', (_event, url: string) => {

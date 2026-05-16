@@ -1,5 +1,7 @@
 export interface Account {
   id: number
+  /** UUID v4 — identidad universal usada por el protocolo de sync. */
+  uuid: string
   platform: string
   username: string
   password: string
@@ -7,6 +9,8 @@ export interface Account {
   is_favorite: boolean
   notes: string
   url: string
+  /** Secreto TOTP en base32 (descifrado). Vacío si la cuenta no tiene 2FA. */
+  totp_secret: string
   created_at: string
   updated_at: string
 }
@@ -19,15 +23,20 @@ export interface AccountInput {
   is_favorite?: boolean
   notes?: string
   url?: string
+  totp_secret?: string
 }
 
 export interface Category {
   id: number
+  /** UUID v4 — identidad universal usada por el protocolo de sync. */
+  uuid: string
   name: string
   description: string
   color: string
   icon: string
   is_default: number
+  /** ISO 8601. Usado por LWW en el merge. */
+  updated_at?: string
 }
 
 export interface CategoryInput {
@@ -44,11 +53,38 @@ export interface PasswordStrength {
   feedback: string[]
 }
 
+export interface SyncDirectionStats {
+  added: number
+  updated: number
+  deleted: number
+}
+
+/** Desde la perspectiva del desktop (donde corre el merge). */
+export interface SyncMergeStats {
+  /** Cambios que el desktop adoptó del móvil. */
+  pulled: SyncDirectionStats
+  /** Cambios que el desktop envió al móvil. */
+  pushed: SyncDirectionStats
+}
+
 export type SyncEventType =
   | { type: 'connected' }
-  | { type: 'transferred'; count: number }
+  | { type: 'merged'; stats: SyncMergeStats }
   | { type: 'expired' }
   | { type: 'error'; message: string }
+
+export interface BackupMeta {
+  fileName: string
+  fullPath: string
+  createdAt: number
+  size: number
+}
+
+export interface TotpCode {
+  code: string
+  secondsRemaining: number
+  stepSeconds: number
+}
 
 export interface ElectronAPI {
   platform: string
@@ -63,6 +99,8 @@ export interface ElectronAPI {
     login(pwd: string):        Promise<boolean>
     logout():                  Promise<void>
     verifyPassword(pwd: string): Promise<boolean>
+    changeMasterPassword(oldPwd: string, newPwd: string):
+      Promise<{ ok: true } | { ok: false; reason: 'wrong-old-password' }>
   }
   accounts: {
     getAll():                        Promise<Account[]>
@@ -90,6 +128,17 @@ export interface ElectronAPI {
     start(): Promise<{ qrData: string; expiresAt: number }>
     stop():  Promise<void>
     onEvent(cb: (e: SyncEventType) => void): () => void
+  }
+  totp: {
+    generate(secret: string): Promise<TotpCode>
+    validate(secret: string): Promise<boolean>
+  }
+  backup: {
+    create():                          Promise<BackupMeta>
+    list():                            Promise<BackupMeta[]>
+    restore(fileName: string):         Promise<number>
+    delete(fileName: string):          Promise<void>
+    openFolder():                      Promise<void>
   }
   shell: {
     openExternal(url: string): Promise<void>

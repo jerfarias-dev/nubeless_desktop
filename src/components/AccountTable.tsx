@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import {
   Copy, Eye, EyeOff, Star, ExternalLink,
-  Pencil, Trash2, Lock, X, Check
+  Pencil, Trash2, Lock, X, Check, AlertTriangle, Repeat
 } from 'lucide-react'
 import { useStore } from '../store/useStore'
+import TotpCodeCell from './TotpCodeCell'
+import { computeAccountHealth, type AccountHealth } from '../utils/passwordHealth'
 import type { Account } from '../types/electron'
 
 interface Props {
@@ -108,14 +110,44 @@ function DeleteConfirmDialog({
   )
 }
 
+/** Iconos informativos de salud — no bloquean nada, solo avisan visualmente. */
+function HealthBadges({ health }: { health?: AccountHealth }) {
+  if (!health || (!health.isWeak && !health.isDuplicate)) {
+    return <span className="text-slate-700">—</span>
+  }
+  return (
+    <div className="flex items-center justify-center gap-1.5">
+      {health.isWeak && (
+        <span
+          title="Contraseña débil — corta o sin variedad. Considera reemplazarla."
+          className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/15 text-amber-400"
+        >
+          <AlertTriangle className="h-3 w-3" />
+        </span>
+      )}
+      {health.isDuplicate && (
+        <span
+          title={`Esta contraseña se repite en ${health.duplicateCount} cuentas. Cambia las duplicadas para mayor seguridad.`}
+          className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500/15 text-red-400"
+        >
+          <Repeat className="h-3 w-3" />
+        </span>
+      )}
+    </div>
+  )
+}
+
 export default function AccountTable({ onEdit }: Props) {
-  const { filteredAccounts, categories, deleteAccount, copyToClipboard } = useStore()
+  const { filteredAccounts, categories, deleteAccount, copyToClipboard, accounts: allAccounts } = useStore()
   const accounts = filteredAccounts()
 
   const [visiblePasswords, setVisiblePasswords] = useState<Set<number>>(new Set())
   const [deletingAccount, setDeletingAccount]   = useState<Account | null>(null)
 
   const catMap = new Map(categories.map(c => [c.id, c]))
+  // Health se computa sobre TODAS las cuentas (no las filtradas) para que la
+  // detección de duplicados sea global, no solo del subset visible.
+  const healthMap = computeAccountHealth(allAccounts)
 
   const togglePwd = (id: number) => {
     setVisiblePasswords(s => {
@@ -155,6 +187,8 @@ export default function AccountTable({ onEdit }: Props) {
               <th className="px-4 py-3">Plataforma</th>
               <th className="px-4 py-3">Usuario</th>
               <th className="px-4 py-3">Contraseña</th>
+              <th className="px-4 py-3 text-center">Salud</th>
+              <th className="px-4 py-3">2FA</th>
               <th className="px-4 py-3">Categoría</th>
               <th className="px-4 py-3 text-center">URL</th>
               <th className="px-4 py-3 text-center">Fav</th>
@@ -211,6 +245,22 @@ export default function AccountTable({ onEdit }: Props) {
                         <Copy className="h-3.5 w-3.5" />
                       </button>
                     </div>
+                  </td>
+
+                  {/* Salud — badges no-bloqueantes */}
+                  <td className="px-4 py-3 text-center">
+                    <HealthBadges health={healthMap.get(account.id)} />
+                  </td>
+
+                  {/* TOTP code — solo si la cuenta tiene secreto */}
+                  <td className="px-4 py-3">
+                    {account.totp_secret
+                      ? <TotpCodeCell
+                          secret={account.totp_secret}
+                          onCopy={code => copyToClipboard(code, 'Código 2FA')}
+                        />
+                      : <span className="text-slate-700">—</span>
+                    }
                   </td>
 
                   {/* Category */}
