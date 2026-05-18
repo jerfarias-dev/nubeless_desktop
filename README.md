@@ -141,7 +141,7 @@ GitHub,miusuario,mipassword,https://github.com,,Trabajo,0
 2. En el desktop: Sincronizar → aparece un QR con TTL de 2 minutos
 3. Escanea con la app móvil → ingresa tu contraseña maestra → listo
 
-Ver también: [`password-manager-mobile`](https://github.com/jerfarias-dev/password-manager-mobile) para la app móvil.
+Ver también: [`password-manager-mobile`](https://github.com/jerfarias-dev/password-manager-mobile) para la app móvil Flutter.
 
 ## Licencia
 
