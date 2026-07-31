@@ -125,7 +125,7 @@ export interface ElectronAPI {
     importCSV(path: string):                    Promise<number>
   }
   sync: {
-    start(): Promise<{ qrData: string; expiresAt: number }>
+    start(): Promise<{ qrData: string; expiresAt: number; ips: string[] }>
     stop():  Promise<void>
     onEvent(cb: (e: SyncEventType) => void): () => void
   }

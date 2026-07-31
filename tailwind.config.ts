@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss'
 
 const config: Config = {
+  darkMode: 'class',
   content: [
     './src/**/*.{ts,tsx,html}',
     './index.html'
@@ -9,20 +10,34 @@ const config: Config = {
     extend: {
       colors: {
         surface: {
-          DEFAULT: '#1a1a2e',
-          card: '#16213e',
-          input: '#0f3460',
-          hover: '#1f4068'
+          DEFAULT: 'var(--bg-primary)',
+          card: 'var(--bg-card)',
+          input: 'var(--bg-input)',
+          hover: 'var(--bg-hover)',
+          subtle: 'var(--bg-subtle)',
+          sidebar: 'var(--bg-sidebar)',
         },
+        primary: 'var(--text-primary)',
+        secondary: 'var(--text-secondary)',
+        muted: 'var(--text-muted)',
+        'on-accent': 'var(--text-on-accent)',
+        border: {
+          DEFAULT: 'var(--border)',
+        },
+        overlay: 'var(--overlay)',
+        inactive: 'var(--inactive)',
         accent: {
           DEFAULT: '#e94560',
-          hover: '#c73652'
-        }
+          hover: '#c73652',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Fira Code', 'monospace']
-      }
+        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+      },
+      transitionProperty: {
+        'theme': 'background-color, border-color, color, fill, stroke',
+      },
     }
   },
   plugins: []

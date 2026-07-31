@@ -18,7 +18,7 @@ export default function PasswordStrength({ strength }: Props) {
             key={i}
             className="h-1.5 flex-1 rounded-full transition-all duration-300"
             style={{
-              backgroundColor: i <= strength.score ? strength.color : '#374151'
+              backgroundColor: i <= strength.score ? strength.color : 'var(--inactive)'
             }}
           />
         ))}
@@ -29,14 +29,14 @@ export default function PasswordStrength({ strength }: Props) {
         <span className="text-xs font-medium" style={{ color: strength.color }}>
           {strength.label}
         </span>
-        <span className="text-xs text-slate-500">{strength.score}/4</span>
+        <span className="text-xs text-muted">{strength.score}/4</span>
       </div>
 
       {/* Feedback */}
       {strength.feedback.length > 0 && (
         <ul className="space-y-0.5">
           {strength.feedback.map((tip, i) => (
-            <li key={i} className="flex items-start gap-1.5 text-xs text-slate-400">
+            <li key={i} className="flex items-start gap-1.5 text-xs text-secondary">
               <span className="mt-0.5 text-amber-400">•</span>
               {tip}
             </li>

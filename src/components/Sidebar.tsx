@@ -80,21 +80,21 @@ export default function Sidebar({ onManageCategories, onSync, onOpenSettings }: 
   return (
     <aside className="flex h-full w-56 flex-col bg-surface-card">
       {/* Logo — drag region para arrastrar la ventana */}
-      <div className={`drag-region flex items-center gap-2.5 border-b border-white/5 px-4 ${isMac ? 'pt-8 pb-3' : isWin ? 'py-3' : 'py-4'}`}>
+      <div className={`drag-region flex items-center gap-2.5 border-b border-border px-4 ${isMac ? 'pt-8 pb-3' : isWin ? 'py-3' : 'py-4'}`}>
         <ShieldCheck className="no-drag h-6 w-6 text-accent" />
-        <span className="no-drag font-semibold text-white">Password Mgr</span>
+        <span className="no-drag font-semibold text-primary">HomeVault</span>
       </div>
 
       {/* Stats */}
-      <div className="border-b border-white/5 px-4 py-3">
+      <div className="border-b border-border px-4 py-3">
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-lg bg-surface-input px-3 py-2 text-center">
-            <p className="text-lg font-bold text-white">{accounts.length}</p>
-            <p className="text-xs text-slate-500">Cuentas</p>
+            <p className="text-lg font-bold text-primary">{accounts.length}</p>
+            <p className="text-xs text-muted">Cuentas</p>
           </div>
           <div className="rounded-lg bg-surface-input px-3 py-2 text-center">
             <p className="text-lg font-bold text-amber-400">{totalFavs}</p>
-            <p className="text-xs text-slate-500">Favoritas</p>
+            <p className="text-xs text-muted">Favoritas</p>
           </div>
         </div>
 
@@ -125,7 +125,7 @@ export default function Sidebar({ onManageCategories, onSync, onOpenSettings }: 
 
       {/* Categories */}
       <nav className="flex-1 overflow-y-auto px-3 py-3">
-        <p className="mb-1 px-1 text-xs font-medium uppercase tracking-wider text-slate-500">
+        <p className="mb-1 px-1 text-xs font-medium uppercase tracking-wider text-muted">
           Categorías
         </p>
         {categories.map(cat => {
@@ -138,8 +138,8 @@ export default function Sidebar({ onManageCategories, onSync, onOpenSettings }: 
               )}
               className={`flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-sm transition ${
                 useStore.getState().filters.categoryId === cat.id
-                  ? 'bg-accent/20 text-white'
-                  : 'text-slate-400 hover:bg-surface-hover hover:text-white'
+                  ? 'bg-accent/20 text-primary'
+                  : 'text-secondary hover:bg-surface-hover hover:text-primary'
               }`}
             >
               <span className="flex items-center gap-2">
@@ -149,18 +149,18 @@ export default function Sidebar({ onManageCategories, onSync, onOpenSettings }: 
                 />
                 {cat.name}
               </span>
-              <span className="text-xs text-slate-500">{count}</span>
+              <span className="text-xs text-muted">{count}</span>
             </button>
           )
         })}
       </nav>
 
       {/* Bottom actions */}
-      <div className="border-t border-white/5 px-3 py-3 space-y-1">
+      <div className="border-t border-border px-3 py-3 space-y-1">
         {/* Vault submenu */}
         <button
           onClick={() => setVaultOpen(v => !v)}
-          className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-surface-hover hover:text-white"
+          className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-secondary hover:bg-surface-hover hover:text-primary"
         >
           <span className="flex items-center gap-2">
             <Download className="h-4 w-4" />
@@ -170,7 +170,7 @@ export default function Sidebar({ onManageCategories, onSync, onOpenSettings }: 
         </button>
 
         {vaultOpen && (
-          <div className="ml-3 space-y-0.5 border-l border-white/10 pl-3">
+          <div className="ml-3 space-y-0.5 border-l border-border pl-3">
             <button onClick={handleExportEnc} className="sidebar-sub-btn">
               <Download className="h-3.5 w-3.5" /> Exportar .enc
             </button>
@@ -188,7 +188,7 @@ export default function Sidebar({ onManageCategories, onSync, onOpenSettings }: 
 
         <button
           onClick={onSync}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-surface-hover hover:text-white"
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-secondary hover:bg-surface-hover hover:text-primary"
         >
           <Smartphone className="h-4 w-4" />
           Sincronizar móvil
@@ -196,7 +196,7 @@ export default function Sidebar({ onManageCategories, onSync, onOpenSettings }: 
 
         <button
           onClick={onManageCategories}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-surface-hover hover:text-white"
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-secondary hover:bg-surface-hover hover:text-primary"
         >
           <Tags className="h-4 w-4" />
           Categorías
@@ -204,7 +204,7 @@ export default function Sidebar({ onManageCategories, onSync, onOpenSettings }: 
 
         <button
           onClick={onOpenSettings}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-surface-hover hover:text-white"
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-secondary hover:bg-surface-hover hover:text-primary"
         >
           <Settings className="h-4 w-4" />
           Configuración
@@ -212,7 +212,7 @@ export default function Sidebar({ onManageCategories, onSync, onOpenSettings }: 
 
         <button
           onClick={logout}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-400 hover:bg-red-500/10 hover:text-red-400"
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-secondary hover:bg-red-500/10 hover:text-red-400"
         >
           <LogOut className="h-4 w-4" />
           Cerrar sesión

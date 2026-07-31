@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import {
   X, Shield, Archive, Info, Lock, KeyRound, Clock, Smartphone,
-  Plus, FolderOpen, RotateCcw, Trash2, FileLock2, Loader2
+  Plus, FolderOpen, RotateCcw, Trash2, FileLock2, Loader2,
+  Sun, Moon
 } from 'lucide-react'
 import { useSettings, AUTO_LOCK_OPTIONS } from '../store/useSettings'
 import { useStore } from '../store/useStore'
@@ -12,15 +13,16 @@ interface Props {
   onClose(): void
 }
 
-type Section = 'security' | 'backups' | 'about'
+type Section = 'security' | 'backups' | 'appearance' | 'about'
 
 // Versión de la app — TODO: exponer desde package.json vía preload
 const APP_VERSION = '1.0.0'
 
 const SECTIONS: { id: Section; label: string; icon: typeof Shield }[] = [
-  { id: 'security', label: 'Seguridad', icon: Shield },
-  { id: 'backups',  label: 'Backups',   icon: Archive },
-  { id: 'about',    label: 'Acerca de', icon: Info },
+  { id: 'security',   label: 'Seguridad',  icon: Shield },
+  { id: 'backups',    label: 'Backups',    icon: Archive },
+  { id: 'appearance', label: 'Apariencia', icon: Sun },
+  { id: 'about',      label: 'Acerca de',  icon: Info },
 ]
 
 export default function SettingsDialog({ onClose }: Props) {
@@ -28,16 +30,16 @@ export default function SettingsDialog({ onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4"
       onClick={onClose}
     >
       <div
-        className="flex h-[520px] w-full max-w-3xl overflow-hidden rounded-2xl bg-surface-card ring-1 ring-white/10"
+        className="flex h-[520px] w-full max-w-3xl overflow-hidden rounded-2xl bg-surface-card ring-1 ring-border"
         onClick={e => e.stopPropagation()}
       >
         {/* Nav lateral de secciones */}
-        <nav className="flex w-48 flex-col border-r border-white/5 bg-black/20 p-3">
-          <p className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <nav className="flex w-48 flex-col border-r border-border bg-black/20 p-3">
+          <p className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-muted">
             Configuración
           </p>
           {SECTIONS.map(s => {
@@ -49,8 +51,8 @@ export default function SettingsDialog({ onClose }: Props) {
                 onClick={() => setSection(s.id)}
                 className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition ${
                   active
-                    ? 'bg-accent/20 text-white'
-                    : 'text-slate-400 hover:bg-surface-hover hover:text-white'
+                    ? 'bg-accent/20 text-primary'
+                    : 'text-secondary hover:bg-surface-hover hover:text-primary'
                 }`}
               >
                 <Icon className="h-4 w-4" />
@@ -62,22 +64,23 @@ export default function SettingsDialog({ onClose }: Props) {
 
         {/* Panel de contenido */}
         <div className="flex flex-1 flex-col">
-          <header className="flex items-center justify-between border-b border-white/5 px-6 py-4">
-            <h2 className="text-base font-semibold text-white">
+          <header className="flex items-center justify-between border-b border-border px-6 py-4">
+            <h2 className="text-base font-semibold text-primary">
               {SECTIONS.find(s => s.id === section)?.label}
             </h2>
             <button
               onClick={onClose}
-              className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white"
+              className="rounded-lg p-1.5 text-secondary hover:bg-surface-hover hover:text-primary"
             >
               <X className="h-5 w-5" />
             </button>
           </header>
 
           <div className="flex-1 overflow-y-auto p-6">
-            {section === 'security' && <SecuritySection />}
-            {section === 'backups'  && <BackupsSection />}
-            {section === 'about'    && <AboutSection />}
+            {section === 'security'   && <SecuritySection />}
+            {section === 'backups'    && <BackupsSection />}
+            {section === 'appearance' && <AppearanceSection />}
+            {section === 'about'      && <AboutSection />}
           </div>
         </div>
       </div>
@@ -111,8 +114,8 @@ function SecuritySection() {
               onClick={() => setAutoLockMinutes(m)}
               className={`rounded-lg px-3 py-1.5 text-sm transition ${
                 autoLockMinutes === m
-                  ? 'bg-accent text-white'
-                  : 'bg-surface-input text-slate-400 hover:text-white'
+                  ? 'bg-accent text-primary'
+                  : 'bg-surface-input text-secondary hover:text-primary'
               }`}
             >
               {labelFor(m)}
@@ -129,7 +132,7 @@ function SecuritySection() {
       >
         <button
           onClick={() => setShowChangePwd(true)}
-          className="rounded-lg bg-surface-input px-4 py-2 text-sm text-white hover:bg-white/10"
+          className="rounded-lg bg-surface-input px-4 py-2 text-sm text-primary hover:bg-surface-hover"
         >
           Cambiar contraseña…
         </button>
@@ -231,7 +234,7 @@ function BackupsSection() {
           <button
             onClick={handleCreate}
             disabled={busy === 'create'}
-            className="flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-60"
+            className="flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-sm font-medium text-primary hover:bg-accent-hover disabled:opacity-60"
           >
             {busy === 'create'
               ? <Loader2 className="h-4 w-4 animate-spin" />
@@ -240,7 +243,7 @@ function BackupsSection() {
           </button>
           <button
             onClick={() => window.electronAPI.backup.openFolder()}
-            className="flex items-center gap-2 rounded-lg bg-surface-input px-3 py-2 text-sm text-slate-300 hover:bg-white/5"
+            className="flex items-center gap-2 rounded-lg bg-surface-input px-3 py-2 text-sm text-secondary hover:bg-surface-hover"
           >
             <FolderOpen className="h-4 w-4" />
             Abrir carpeta
@@ -249,8 +252,8 @@ function BackupsSection() {
       </SettingCard>
 
       {/* Lista de backups existentes */}
-      <div className="rounded-xl border border-white/5 bg-surface-input/30">
-        <div className="border-b border-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+      <div className="rounded-xl border border-border bg-surface-input/30">
+        <div className="border-b border-border px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted">
           Backups guardados {backups.length > 0 && `(${backups.length}/10)`}
         </div>
 
@@ -259,28 +262,28 @@ function BackupsSection() {
         )}
 
         {loading ? (
-          <div className="flex items-center gap-2 px-4 py-6 text-sm text-slate-500">
+          <div className="flex items-center gap-2 px-4 py-6 text-sm text-muted">
             <Loader2 className="h-4 w-4 animate-spin" />
             Cargando…
           </div>
         ) : backups.length === 0 ? (
-          <div className="px-4 py-8 text-center text-sm text-slate-500">
-            <FileLock2 className="mx-auto mb-2 h-6 w-6 text-slate-600" />
+          <div className="px-4 py-8 text-center text-sm text-muted">
+            <FileLock2 className="mx-auto mb-2 h-6 w-6 text-muted" />
             Aún no hay backups. Crea uno con el botón de arriba.
           </div>
         ) : (
-          <ul className="divide-y divide-white/5">
+          <ul className="divide-y divide-border">
             {backups.map(b => {
               const date = new Date(b.createdAt)
               const isBusy = busy === b.fileName
               return (
                 <li key={b.fileName} className="flex items-center gap-3 px-4 py-3">
-                  <FileLock2 className="h-4 w-4 shrink-0 text-slate-500" />
+                  <FileLock2 className="h-4 w-4 shrink-0 text-muted" />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm text-white">
+                    <p className="truncate text-sm text-primary">
                       {date.toLocaleDateString()} {date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-muted">
                       {formatBytes(b.size)} · {b.fileName}
                     </p>
                   </div>
@@ -288,7 +291,7 @@ function BackupsSection() {
                     onClick={() => setConfirmRestore(b)}
                     disabled={isBusy}
                     title="Restaurar"
-                    className="rounded-md p-1.5 text-slate-400 hover:bg-white/5 hover:text-white disabled:opacity-50"
+                    className="rounded-md p-1.5 text-secondary hover:bg-surface-hover hover:text-primary disabled:opacity-50"
                   >
                     {isBusy
                       ? <Loader2 className="h-4 w-4 animate-spin" />
@@ -298,7 +301,7 @@ function BackupsSection() {
                     onClick={() => setConfirmDelete(b)}
                     disabled={isBusy}
                     title="Eliminar"
-                    className="rounded-md p-1.5 text-slate-400 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
+                    className="rounded-md p-1.5 text-secondary hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -366,34 +369,81 @@ function ConfirmDialog({
 }) {
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-overlay p-4"
       onClick={onCancel}
     >
       <div
-        className="w-full max-w-sm rounded-xl bg-surface-card p-5 ring-1 ring-white/10"
+        className="w-full max-w-sm rounded-xl bg-surface-card p-5 ring-1 ring-border"
         onClick={e => e.stopPropagation()}
       >
         <div className="mb-3 flex items-center gap-3">
           <div className={`flex h-10 w-10 items-center justify-center rounded-full ${iconBg}`}>
             <Icon className={`h-5 w-5 ${iconColor}`} />
           </div>
-          <h3 className="text-base font-semibold text-white">{title}</h3>
+          <h3 className="text-base font-semibold text-primary">{title}</h3>
         </div>
-        <p className="mb-4 text-sm leading-relaxed text-slate-400">{message}</p>
+        <p className="mb-4 text-sm leading-relaxed text-secondary">{message}</p>
         <div className="flex justify-end gap-2">
           <button
             onClick={onCancel}
-            className="rounded-lg bg-surface-input px-4 py-2 text-sm text-slate-300 hover:bg-white/5"
+            className="rounded-lg bg-surface-input px-4 py-2 text-sm text-secondary hover:bg-surface-hover"
           >
             Cancelar
           </button>
           <button
             onClick={onConfirm}
-            className={`rounded-lg px-4 py-2 text-sm font-medium text-white ${confirmClass}`}
+            className={`rounded-lg px-4 py-2 text-sm font-medium text-primary ${confirmClass}`}
           >
             {confirmLabel}
           </button>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sección: Apariencia
+// ─────────────────────────────────────────────────────────────────────────────
+function AppearanceSection() {
+  const theme = useSettings(s => s.theme)
+  const setTheme = useSettings(s => s.setTheme)
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/15">
+          <Sun className="h-7 w-7 text-accent" />
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold text-primary">Apariencia</h3>
+          <p className="text-xs text-secondary">Alterna entre tema oscuro y claro</p>
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <button
+          onClick={() => setTheme('dark')}
+          className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-5 text-sm font-medium transition ${
+            theme === 'dark'
+              ? 'bg-accent text-white ring-2 ring-accent'
+              : 'bg-surface-input text-secondary ring-1 ring-border hover:text-primary'
+          }`}
+        >
+          <Moon className="h-5 w-5" />
+          <span>Oscuro</span>
+        </button>
+        <button
+          onClick={() => setTheme('light')}
+          className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-4 py-5 text-sm font-medium transition ${
+            theme === 'light'
+              ? 'bg-accent text-white ring-2 ring-accent'
+              : 'bg-surface-input text-secondary ring-1 ring-border hover:text-primary'
+          }`}
+        >
+          <Sun className="h-5 w-5" />
+          <span>Claro</span>
+        </button>
       </div>
     </div>
   )
@@ -410,12 +460,12 @@ function AboutSection() {
           <Lock className="h-7 w-7 text-accent" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-white">Password Manager</h3>
-          <p className="text-sm text-slate-500">Versión {APP_VERSION}</p>
+          <h3 className="text-lg font-semibold text-primary">HomeVault</h3>
+          <p className="text-sm text-muted">Versión {APP_VERSION}</p>
         </div>
       </div>
 
-      <div className="space-y-2 rounded-xl bg-surface-input/50 p-4 text-sm text-slate-400">
+      <div className="space-y-2 rounded-xl bg-surface-input/50 p-4 text-sm text-secondary">
         <p className="flex items-center gap-2">
           <Shield className="h-4 w-4 text-green-400" />
           Cifrado AES-256-GCM con PBKDF2-SHA512 (600 000 iteraciones)
@@ -430,7 +480,7 @@ function AboutSection() {
         </p>
       </div>
 
-      <p className="text-xs text-slate-600">
+      <p className="text-xs text-muted">
         Uso personal. Tus datos viven cifrados en el almacenamiento del sistema operativo.
       </p>
     </div>
@@ -454,17 +504,17 @@ function SettingCard({
   children: React.ReactNode
 }) {
   return (
-    <div className={`rounded-xl border border-white/5 bg-surface-input/30 p-4 ${comingSoon ? 'opacity-70' : ''}`}>
+    <div className={`rounded-xl border border-border bg-surface-input/30 p-4 ${comingSoon ? 'opacity-70' : ''}`}>
       <div className="mb-1 flex items-center gap-2">
         <Icon className="h-4 w-4 text-accent" />
-        <h3 className="text-sm font-semibold text-white">{title}</h3>
+        <h3 className="text-sm font-semibold text-primary">{title}</h3>
         {comingSoon && (
           <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-amber-400">
             Próximamente
           </span>
         )}
       </div>
-      <p className="mb-3 text-xs leading-relaxed text-slate-500">{description}</p>
+      <p className="mb-3 text-xs leading-relaxed text-muted">{description}</p>
       {children}
     </div>
   )

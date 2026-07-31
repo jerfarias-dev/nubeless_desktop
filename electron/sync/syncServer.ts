@@ -10,7 +10,10 @@ const SESSION_TTL_MS = 120_000 // 2 minutos
 export interface SyncSession {
   qrData: string    // base64 del payload QR (scheme pmvault://<base64json>)
   expiresAt: number
+  /** IP primaria — útil para mostrar en logs/UI */
   ip: string
+  /** Todas las IPs detectadas, embedidas en el QR para que el móvil pruebe cada una */
+  ips: string[]
   port: number
 }
 
@@ -46,14 +49,23 @@ export class SyncServer {
   setEventListener(fn: (e: SyncEvent) => void) { this.onEvent = fn }
   private emit(e: SyncEvent) { this.onEvent?.(e) }
 
-  private getLocalIP(): string {
+  /** Todas las IPs IPv4 no-internas de la máquina, en orden de prioridad razonable.
+   *  Se incluyen TODAS (Ethernet, WiFi, hotspot, VPN, Docker) porque a priori no
+   *  sabemos cuál podrá alcanzar el móvil. El móvil prueba cada una hasta que
+   *  alguna conteste. */
+  private getAllLocalIPs(): string[] {
     const nets = networkInterfaces()
+    const ips: string[] = []
     for (const ifaces of Object.values(nets)) {
       for (const iface of ifaces ?? []) {
-        if (iface.family === 'IPv4' && !iface.internal) return iface.address
+        if (iface.family === 'IPv4' && !iface.internal) {
+          ips.push(iface.address)
+        }
       }
     }
-    return '127.0.0.1'
+    // Dedup defensivo y fallback a loopback si no hay nada
+    const unique = [...new Set(ips)]
+    return unique.length > 0 ? unique : ['127.0.0.1']
   }
 
   private findFreePort(): Promise<number> {
@@ -81,13 +93,18 @@ export class SyncServer {
     this.expiresAt    = Date.now() + SESSION_TTL_MS
 
     const port = await this.findFreePort()
-    const ip   = this.getLocalIP()
+    const ips  = this.getAllLocalIPs()
+    const primaryIp = ips[0]
 
+    // QR v2: incluye `ips` (todas las interfaces) y `ip` (primaria) para
+    // compatibilidad hacia atrás con apps móviles v1.
     const qrPayload = JSON.stringify({
-      ip, port,
+      ip: primaryIp,        // fallback v1
+      ips,                  // v2 — móvil probará cada una
+      port,
       key: this.sessionKey.toString('base64'),
       exp: this.expiresAt,
-      v: 1
+      v: 2
     })
     const qrData = `pmvault://${Buffer.from(qrPayload).toString('base64')}`
 
@@ -99,7 +116,7 @@ export class SyncServer {
       this.server.listen(port, '0.0.0.0', () => {
         // Auto-expirar la sesión cuando llega su TTL
         setTimeout(() => { this.emit({ type: 'expired' }); this.stop() }, SESSION_TTL_MS)
-        resolve({ qrData, expiresAt: this.expiresAt, ip, port })
+        resolve({ qrData, expiresAt: this.expiresAt, ip: primaryIp, ips, port })
       })
     })
   }

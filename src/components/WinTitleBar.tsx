@@ -8,10 +8,10 @@ export default function WinTitleBar() {
   const close    = () => window.electronAPI.win.close()
 
   return (
-    <div className="drag-region flex h-8 shrink-0 items-center justify-between bg-surface-card select-none border-b border-white/5">
+    <div className="drag-region flex h-8 shrink-0 items-center justify-between bg-surface-card select-none border-b border-border">
       {/* Título de la app */}
-      <span className="no-drag pl-4 text-xs font-medium text-slate-500">
-        Password Manager
+      <span className="no-drag pl-4 text-xs font-medium text-muted">
+        HomeVault
       </span>
 
       {/* Controles de ventana */}
@@ -19,7 +19,7 @@ export default function WinTitleBar() {
         <button
           onClick={minimize}
           title="Minimizar"
-          className="flex h-full w-11 items-center justify-center text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+          className="flex h-full w-11 items-center justify-center text-secondary hover:bg-surface-hover hover:text-primary transition-colors"
         >
           <svg width="10" height="1" viewBox="0 0 10 1" fill="currentColor">
             <rect width="10" height="1" />
@@ -28,7 +28,7 @@ export default function WinTitleBar() {
         <button
           onClick={maximize}
           title="Maximizar"
-          className="flex h-full w-11 items-center justify-center text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+          className="flex h-full w-11 items-center justify-center text-secondary hover:bg-surface-hover hover:text-primary transition-colors"
         >
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1">
             <rect x="0.5" y="0.5" width="9" height="9" />
@@ -37,7 +37,7 @@ export default function WinTitleBar() {
         <button
           onClick={close}
           title="Cerrar"
-          className="flex h-full w-11 items-center justify-center text-slate-400 hover:bg-red-500 hover:text-white transition-colors"
+          className="flex h-full w-11 items-center justify-center text-secondary hover:bg-red-500 hover:text-primary transition-colors"
         >
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2">
             <line x1="0" y1="0" x2="10" y2="10" />

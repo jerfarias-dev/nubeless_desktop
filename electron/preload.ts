@@ -63,7 +63,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Sync
   sync: {
-    start: () => invoke<{ qrData: string; expiresAt: number }>('sync:start'),
+    start: () => invoke<{ qrData: string; expiresAt: number; ips: string[] }>('sync:start'),
     stop:  () => invoke<void>('sync:stop'),
     onEvent: (cb: (event: unknown) => void) => {
       ipcRenderer.on('sync:event', (_e, data) => cb(data))

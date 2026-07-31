@@ -15,6 +15,7 @@ export default function SyncDialog({ onClose }: Props) {
   const [status, setStatus]       = useState<SyncStatus>('verify')
   const [qrData, setQrData]       = useState<string | null>(null)
   const [expiresAt, setExpiresAt] = useState(0)
+  const [ips, setIps]             = useState<string[]>([])
   const [secondsLeft, setSeconds] = useState(120)
   const [mergeStats, setMergeStats] = useState<SyncMergeStats | null>(null)
   const [errorMsg, setErrorMsg]   = useState('')
@@ -30,9 +31,10 @@ export default function SyncDialog({ onClose }: Props) {
     setStatus('loading')
     setErrorMsg('')
     try {
-      const { qrData: qr, expiresAt: exp } = await window.electronAPI.sync.start()
+      const { qrData: qr, expiresAt: exp, ips: detectedIps } = await window.electronAPI.sync.start()
       setQrData(qr)
       setExpiresAt(exp)
+      setIps(detectedIps ?? [])
       setSeconds(Math.round((exp - Date.now()) / 1000))
       setStatus('waiting')
     } catch (e) {
@@ -93,15 +95,15 @@ export default function SyncDialog({ onClose }: Props) {
   const timerColor = secondsLeft > 60 ? '#22c55e' : secondsLeft > 30 ? '#eab308' : '#ef4444'
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-surface-card shadow-2xl ring-1 ring-white/10">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
+      <div className="w-full max-w-md rounded-2xl bg-surface-card shadow-2xl ring-1 ring-border">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/5 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <div className="flex items-center gap-2.5">
             <Smartphone className="h-5 w-5 text-accent" />
-            <h2 className="text-base font-semibold text-white">Sincronizar con móvil</h2>
+            <h2 className="text-base font-semibold text-primary">Sincronizar con móvil</h2>
           </div>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white">
+          <button onClick={onClose} className="rounded-lg p-1.5 text-secondary hover:bg-surface-hover hover:text-primary">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -114,8 +116,8 @@ export default function SyncDialog({ onClose }: Props) {
                 <ShieldCheck className="h-7 w-7 text-accent" />
               </div>
               <div className="text-center">
-                <h3 className="text-base font-semibold text-white">Confirma tu identidad</h3>
-                <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+                <h3 className="text-base font-semibold text-primary">Confirma tu identidad</h3>
+                <p className="mt-1 text-xs text-secondary leading-relaxed">
                   Re-ingresa tu contraseña maestra para autorizar la sincronización.
                   Esto protege tus contraseñas si alguien usa tu equipo sin permiso.
                 </p>
@@ -130,12 +132,12 @@ export default function SyncDialog({ onClose }: Props) {
                     placeholder="Contraseña maestra"
                     autoFocus
                     disabled={verifying}
-                    className="w-full rounded-lg bg-surface-input py-2.5 pl-3 pr-10 text-sm text-white placeholder-slate-500 outline-none ring-1 ring-white/10 focus:ring-accent"
+                    className="w-full rounded-lg bg-surface-input py-2.5 pl-3 pr-10 text-sm text-primary placeholder-muted outline-none ring-1 ring-border focus:ring-accent"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPwd(v => !v)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-500 hover:text-slate-300"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-muted hover:text-secondary"
                   >
                     {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -147,14 +149,14 @@ export default function SyncDialog({ onClose }: Props) {
               <div className="flex w-full gap-2">
                 <button
                   onClick={onClose}
-                  className="flex-1 rounded-lg bg-surface-input py-2.5 text-sm font-medium text-slate-300 hover:bg-white/5"
+                  className="flex-1 rounded-lg bg-surface-input py-2.5 text-sm font-medium text-secondary hover:bg-surface-hover"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleVerify}
                   disabled={verifying || !verifyPwd}
-                  className="flex-1 rounded-lg bg-accent py-2.5 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50"
+                  className="flex-1 rounded-lg bg-accent py-2.5 text-sm font-medium text-primary hover:bg-accent-hover disabled:opacity-50"
                 >
                   {verifying ? 'Verificando…' : 'Continuar'}
                 </button>
@@ -166,14 +168,14 @@ export default function SyncDialog({ onClose }: Props) {
           {status === 'loading' && (
             <div className="flex flex-col items-center gap-3 py-8">
               <Loader2 className="h-10 w-10 animate-spin text-accent" />
-              <p className="text-sm text-slate-400">Iniciando servidor local…</p>
+              <p className="text-sm text-secondary">Iniciando servidor local…</p>
             </div>
           )}
 
           {/* Waiting / Connected — mostrar QR */}
           {(status === 'waiting' || status === 'connected') && qrData && (
             <>
-              <p className="mb-4 text-sm text-slate-400">
+              <p className="mb-4 text-sm text-secondary">
                 {status === 'waiting'
                   ? 'Escanea el código QR con la app móvil'
                   : 'Móvil conectado — transfiriendo…'}
@@ -191,7 +193,7 @@ export default function SyncDialog({ onClose }: Props) {
               <div className="mt-5 flex items-center justify-center gap-2">
                 <div className="relative h-9 w-9">
                   <svg className="h-9 w-9 -rotate-90" viewBox="0 0 36 36">
-                    <circle cx="18" cy="18" r="15" fill="none" stroke="#1e293b" strokeWidth="3" />
+                    <circle cx="18" cy="18" r="15" fill="none" stroke="var(--border)" strokeWidth="3" />
                     <circle
                       cx="18" cy="18" r="15" fill="none"
                       stroke={timerColor} strokeWidth="3"
@@ -204,16 +206,27 @@ export default function SyncDialog({ onClose }: Props) {
                     {secondsLeft}s
                   </span>
                 </div>
-                <span className="text-sm text-slate-400">
+                <span className="text-sm text-secondary">
                   {status === 'connected' ? 'Transfiriendo…' : 'Expira en'}
                 </span>
               </div>
 
-              {/* Info */}
-              <p className="mt-4 text-xs text-slate-500">
-                Ambos dispositivos deben estar en la <strong className="text-slate-400">misma red WiFi</strong>.
+              {/* Info + diagnóstico de redes */}
+              <p className="mt-4 text-xs text-muted">
+                Ambos dispositivos deben estar en la <strong className="text-secondary">misma red WiFi</strong>.
                 La conexión es 100% local.
               </p>
+              {ips.length > 0 && (
+                <details className="mt-2 text-xs text-muted">
+                  <summary className="cursor-pointer hover:text-secondary">
+                    Detectadas {ips.length} {ips.length === 1 ? 'red' : 'redes'} —
+                    el móvil probará cada una
+                  </summary>
+                  <ul className="mt-1 ml-4 text-left font-mono">
+                    {ips.map(ip => <li key={ip}>{ip}</li>)}
+                  </ul>
+                </details>
+              )}
             </>
           )}
 
@@ -223,32 +236,32 @@ export default function SyncDialog({ onClose }: Props) {
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500/20">
                 <CheckCircle className="h-9 w-9 text-green-400" />
               </div>
-              <h3 className="text-lg font-semibold text-white">Sincronización completa</h3>
+              <h3 className="text-lg font-semibold text-primary">Sincronización completa</h3>
 
               {mergeStats && (() => {
                 const isEmpty =
                   mergeStats.pulled.added === 0 && mergeStats.pulled.updated === 0 && mergeStats.pulled.deleted === 0 &&
                   mergeStats.pushed.added === 0 && mergeStats.pushed.updated === 0 && mergeStats.pushed.deleted === 0
                 if (isEmpty) return (
-                  <p className="text-sm text-slate-400">Ambos dispositivos ya estaban al día.</p>
+                  <p className="text-sm text-secondary">Ambos dispositivos ya estaban al día.</p>
                 )
                 return (
-                  <div className="w-full space-y-1.5 px-2 text-left text-sm text-slate-300">
+                  <div className="w-full space-y-1.5 px-2 text-left text-sm text-secondary">
                     {/* Pulled = lo que desktop adoptó del móvil */}
-                    {mergeStats.pulled.added > 0   && <p>← Nuevos desde móvil: <span className="font-semibold text-white">{mergeStats.pulled.added}</span></p>}
-                    {mergeStats.pulled.updated > 0 && <p>← Actualizados desde móvil: <span className="font-semibold text-white">{mergeStats.pulled.updated}</span></p>}
-                    {mergeStats.pulled.deleted > 0 && <p>← Borrados desde móvil: <span className="font-semibold text-white">{mergeStats.pulled.deleted}</span></p>}
+                    {mergeStats.pulled.added > 0   && <p>← Nuevos desde móvil: <span className="font-semibold text-primary">{mergeStats.pulled.added}</span></p>}
+                    {mergeStats.pulled.updated > 0 && <p>← Actualizados desde móvil: <span className="font-semibold text-primary">{mergeStats.pulled.updated}</span></p>}
+                    {mergeStats.pulled.deleted > 0 && <p>← Borrados desde móvil: <span className="font-semibold text-primary">{mergeStats.pulled.deleted}</span></p>}
                     {/* Pushed = lo que desktop envió al móvil */}
-                    {mergeStats.pushed.added > 0   && <p>→ Nuevos al móvil: <span className="font-semibold text-white">{mergeStats.pushed.added}</span></p>}
-                    {mergeStats.pushed.updated > 0 && <p>→ Actualizados al móvil: <span className="font-semibold text-white">{mergeStats.pushed.updated}</span></p>}
-                    {mergeStats.pushed.deleted > 0 && <p>→ Borrados al móvil: <span className="font-semibold text-white">{mergeStats.pushed.deleted}</span></p>}
+                    {mergeStats.pushed.added > 0   && <p>→ Nuevos al móvil: <span className="font-semibold text-primary">{mergeStats.pushed.added}</span></p>}
+                    {mergeStats.pushed.updated > 0 && <p>→ Actualizados al móvil: <span className="font-semibold text-primary">{mergeStats.pushed.updated}</span></p>}
+                    {mergeStats.pushed.deleted > 0 && <p>→ Borrados al móvil: <span className="font-semibold text-primary">{mergeStats.pushed.deleted}</span></p>}
                   </div>
                 )
               })()}
 
               <button
                 onClick={() => { useStore.getState().loadAccounts(); onClose() }}
-                className="mt-2 rounded-lg bg-accent px-6 py-2 text-sm font-medium text-white hover:bg-accent-hover"
+                className="mt-2 rounded-lg bg-accent px-6 py-2 text-sm font-medium text-primary hover:bg-accent-hover"
               >
                 Cerrar
               </button>
@@ -261,11 +274,11 @@ export default function SyncDialog({ onClose }: Props) {
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/20">
                 <Clock className="h-9 w-9 text-amber-400" />
               </div>
-              <h3 className="text-base font-semibold text-white">Código expirado</h3>
-              <p className="text-sm text-slate-400">El QR es válido 2 minutos por seguridad.</p>
+              <h3 className="text-base font-semibold text-primary">Código expirado</h3>
+              <p className="text-sm text-secondary">El QR es válido 2 minutos por seguridad.</p>
               <button
                 onClick={startSync}
-                className="mt-2 rounded-lg bg-accent px-6 py-2 text-sm font-medium text-white hover:bg-accent-hover"
+                className="mt-2 rounded-lg bg-accent px-6 py-2 text-sm font-medium text-primary hover:bg-accent-hover"
               >
                 Generar nuevo QR
               </button>
@@ -278,11 +291,11 @@ export default function SyncDialog({ onClose }: Props) {
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500/20">
                 <AlertCircle className="h-9 w-9 text-red-400" />
               </div>
-              <h3 className="text-base font-semibold text-white">Error</h3>
-              <p className="text-sm text-slate-400">{errorMsg}</p>
+              <h3 className="text-base font-semibold text-primary">Error</h3>
+              <p className="text-sm text-secondary">{errorMsg}</p>
               <button
                 onClick={startSync}
-                className="mt-2 rounded-lg bg-accent px-6 py-2 text-sm font-medium text-white hover:bg-accent-hover"
+                className="mt-2 rounded-lg bg-accent px-6 py-2 text-sm font-medium text-primary hover:bg-accent-hover"
               >
                 Reintentar
               </button>

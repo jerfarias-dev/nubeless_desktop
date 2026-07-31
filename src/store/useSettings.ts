@@ -8,12 +8,18 @@ import { persist } from 'zustand/middleware'
  * son una responsabilidad distinta: no son sensibles, no requieren cifrado y
  * sobreviven entre sesiones sin pasar por el proceso main.
  */
+export type ThemeMode = 'dark' | 'light'
+
 interface SettingsState {
+  // --- Apariencia ---
+  theme: ThemeMode
+
   // --- Seguridad ---
   /** Minutos de inactividad antes del auto-bloqueo. 0 = desactivado. */
   autoLockMinutes: number
 
   // --- Acciones ---
+  setTheme(mode: ThemeMode): void
   setAutoLockMinutes(minutes: number): void
 }
 
@@ -23,7 +29,9 @@ export const AUTO_LOCK_OPTIONS = [0, 1, 5, 10, 15, 30] as const
 export const useSettings = create<SettingsState>()(
   persist(
     (set) => ({
+      theme: 'dark',
       autoLockMinutes: 10,
+      setTheme: (mode) => set({ theme: mode }),
       setAutoLockMinutes: (minutes) => set({ autoLockMinutes: minutes }),
     }),
     { name: 'pm-settings' }

@@ -85,25 +85,25 @@ export default function ChangeMasterPasswordDialog({ onClose, onSuccess }: Props
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-overlay p-4"
       onClick={status === 'saving' ? undefined : handleClose}
     >
       <div
-        className="w-full max-w-md overflow-hidden rounded-2xl bg-surface-card ring-1 ring-white/10"
+        className="w-full max-w-md overflow-hidden rounded-2xl bg-surface-card ring-1 ring-border"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/5 px-5 py-4">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <div className="flex items-center gap-2">
             <KeyRound className="h-5 w-5 text-accent" />
-            <h2 className="text-base font-semibold text-white">
+            <h2 className="text-base font-semibold text-primary">
               Cambiar contraseña maestra
             </h2>
           </div>
           <button
             onClick={handleClose}
             disabled={status === 'saving'}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white disabled:opacity-50"
+            className="rounded-lg p-1.5 text-secondary hover:bg-surface-hover hover:text-primary disabled:opacity-50"
           >
             <X className="h-5 w-5" />
           </button>
@@ -165,13 +165,13 @@ export default function ChangeMasterPasswordDialog({ onClose, onSuccess }: Props
               <button
                 type="button"
                 onClick={handleClose}
-                className="rounded-lg bg-surface-input px-4 py-2 text-sm text-slate-300 hover:bg-white/5"
+                className="rounded-lg bg-surface-input px-4 py-2 text-sm text-secondary hover:bg-surface-hover"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover"
+                className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-primary hover:bg-accent-hover"
               >
                 Cambiar contraseña
               </button>
@@ -183,8 +183,8 @@ export default function ChangeMasterPasswordDialog({ onClose, onSuccess }: Props
         {status === 'saving' && (
           <div className="flex flex-col items-center gap-3 p-10 text-center">
             <Loader2 className="h-10 w-10 animate-spin text-accent" />
-            <p className="text-sm font-medium text-white">Re-cifrando bóveda…</p>
-            <p className="text-xs text-slate-500">
+            <p className="text-sm font-medium text-primary">Re-cifrando bóveda…</p>
+            <p className="text-xs text-muted">
               Esto puede tardar unos segundos. No cierres la app.
             </p>
           </div>
@@ -196,13 +196,13 @@ export default function ChangeMasterPasswordDialog({ onClose, onSuccess }: Props
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-500/20">
               <ShieldCheck className="h-7 w-7 text-green-400" />
             </div>
-            <h3 className="text-lg font-semibold text-white">¡Contraseña cambiada!</h3>
-            <p className="text-sm text-slate-400">
+            <h3 className="text-lg font-semibold text-primary">¡Contraseña cambiada!</h3>
+            <p className="text-sm text-secondary">
               Tu bóveda fue re-cifrada con la nueva contraseña. La sesión actual sigue activa.
             </p>
             <button
               onClick={handleSuccessClose}
-              className="mt-2 rounded-lg bg-accent px-6 py-2 text-sm font-medium text-white hover:bg-accent-hover"
+              className="mt-2 rounded-lg bg-accent px-6 py-2 text-sm font-medium text-primary hover:bg-accent-hover"
             >
               Entendido
             </button>
@@ -228,7 +228,7 @@ function PasswordField({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium text-slate-400">
+      <label className="mb-1 block text-xs font-medium text-secondary">
         {label}
       </label>
       <div className="relative">
@@ -237,13 +237,13 @@ function PasswordField({
           value={value}
           onChange={e => onChange(e.target.value)}
           autoFocus={autoFocus}
-          className="w-full rounded-lg bg-surface-input py-2 pl-3 pr-10 text-sm text-white placeholder-slate-500 outline-none ring-1 ring-white/10 focus:ring-accent"
+          className="w-full rounded-lg bg-surface-input py-2 pl-3 pr-10 text-sm text-primary placeholder-muted outline-none ring-1 ring-border focus:ring-accent"
         />
         <button
           type="button"
           onClick={onToggleShow}
           tabIndex={-1}
-          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-500 hover:text-slate-300"
+          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-muted hover:text-secondary"
         >
           {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>

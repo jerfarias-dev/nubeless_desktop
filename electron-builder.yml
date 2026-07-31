@@ -1,5 +1,5 @@
 appId: com.tucorp.passwordmanager
-productName: Password Manager
+productName: HomeVault
 copyright: Copyright © 2025
 
 directories:
@@ -30,7 +30,7 @@ mac:
   darkModeSupport: true
 
 dmg:
-  title: Password Manager
+  title: HomeVault
   backgroundColor: "#1a1a2e"
   window:
     width: 540
@@ -47,7 +47,7 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: Password Manager
+  shortcutName: HomeVault
 
 linux:
   icon: resources/icon.png

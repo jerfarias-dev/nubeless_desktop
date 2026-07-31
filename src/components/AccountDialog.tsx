@@ -104,14 +104,14 @@ export default function AccountDialog({ account, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-surface-card shadow-2xl ring-1 ring-white/10">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
+      <div className="w-full max-w-lg rounded-2xl bg-surface-card shadow-2xl ring-1 ring-border">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/5 px-6 py-4">
-          <h2 className="text-lg font-semibold text-white">
+        <div className="flex items-center justify-between border-b border-border px-6 py-4">
+          <h2 className="text-lg font-semibold text-primary">
             {isEdit ? 'Editar cuenta' : 'Nueva cuenta'}
           </h2>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-slate-400 hover:bg-white/5 hover:text-white">
+          <button onClick={onClose} className="rounded-lg p-1.5 text-secondary hover:bg-surface-hover hover:text-primary">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -156,7 +156,7 @@ export default function AccountDialog({ account, onClose }: Props) {
             <label className="field-label">Contraseña *</label>
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
                 <input
                   type={showPwd ? 'text' : 'password'}
                   value={form.password}
@@ -167,7 +167,7 @@ export default function AccountDialog({ account, onClose }: Props) {
                 <button
                   type="button"
                   onClick={() => setShowPwd(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-secondary"
                 >
                   {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -184,11 +184,11 @@ export default function AccountDialog({ account, onClose }: Props) {
                 onChange={e => setGenLength(Number(e.target.value))}
                 className="flex-1 accent-accent"
               />
-              <span className="w-8 text-center text-xs text-slate-400">{genLength}</span>
+              <span className="w-8 text-center text-xs text-secondary">{genLength}</span>
               <button
                 type="button"
                 onClick={handleGenerate}
-                className="flex items-center gap-1.5 rounded-lg bg-surface-input px-3 py-1.5 text-xs text-slate-300 hover:bg-surface-hover hover:text-white"
+                className="flex items-center gap-1.5 rounded-lg bg-surface-input px-3 py-1.5 text-xs text-secondary hover:bg-surface-hover hover:text-primary"
               >
                 <RefreshCw className="h-3.5 w-3.5" />
                 Generar
@@ -218,7 +218,7 @@ export default function AccountDialog({ account, onClose }: Props) {
               </select>
             </div>
             <div className="flex items-end pb-0.5">
-              <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-300">
+              <label className="flex cursor-pointer items-center gap-2 text-sm text-secondary">
                 <input
                   type="checkbox"
                   checked={form.is_favorite}
@@ -249,7 +249,7 @@ export default function AccountDialog({ account, onClose }: Props) {
               <button
                 type="button"
                 onClick={() => setShowTotp(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-secondary"
               >
                 {showTotp ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -287,14 +287,14 @@ export default function AccountDialog({ account, onClose }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg bg-white/5 px-4 py-2 text-sm text-slate-400 hover:bg-white/10"
+              className="rounded-lg bg-surface-subtle px-4 py-2 text-sm text-secondary hover:bg-surface-hover"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-hover disabled:opacity-50"
+              className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-primary hover:bg-accent-hover disabled:opacity-50"
             >
               {loading ? 'Guardando…' : isEdit ? 'Actualizar' : 'Crear'}
             </button>

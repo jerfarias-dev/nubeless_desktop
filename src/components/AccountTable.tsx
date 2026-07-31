@@ -47,23 +47,23 @@ function DeleteConfirmDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="w-full max-w-sm rounded-2xl bg-surface-card p-6 shadow-2xl ring-1 ring-white/10">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
+      <div className="w-full max-w-sm rounded-2xl bg-surface-card p-6 shadow-2xl ring-1 ring-border">
         {step === 'confirm' ? (
           <>
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10">
               <Trash2 className="h-6 w-6 text-red-400" />
             </div>
-            <h3 className="mb-1 text-base font-semibold text-white">Eliminar cuenta</h3>
-            <p className="mb-4 text-sm text-slate-400">
-              ¿Eliminar <span className="text-white font-medium">{account.platform}</span>
+            <h3 className="mb-1 text-base font-semibold text-primary">Eliminar cuenta</h3>
+            <p className="mb-4 text-sm text-secondary">
+              ¿Eliminar <span className="text-primary font-medium">{account.platform}</span>
               {' '}({account.username})? Esta acción es irreversible.
             </p>
             <div className="flex gap-2">
-              <button onClick={onCancel} className="flex-1 rounded-lg bg-white/5 py-2 text-sm text-slate-400 hover:bg-white/10">
+              <button onClick={onCancel} className="flex-1 rounded-lg bg-surface-subtle py-2 text-sm text-secondary hover:bg-surface-hover">
                 Cancelar
               </button>
-              <button onClick={handleFirstConfirm} className="flex-1 rounded-lg bg-red-500/80 py-2 text-sm font-medium text-white hover:bg-red-500">
+              <button onClick={handleFirstConfirm} className="flex-1 rounded-lg bg-red-500/80 py-2 text-sm font-medium text-primary hover:bg-red-500">
                 Continuar
               </button>
             </div>
@@ -73,8 +73,8 @@ function DeleteConfirmDialog({
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10">
               <Lock className="h-6 w-6 text-red-400" />
             </div>
-            <h3 className="mb-1 text-base font-semibold text-white">Verificar identidad</h3>
-            <p className="mb-3 text-sm text-slate-400">
+            <h3 className="mb-1 text-base font-semibold text-primary">Verificar identidad</h3>
+            <p className="mb-3 text-sm text-secondary">
               Ingresa tu contraseña maestra para confirmar la eliminación.
             </p>
             <div className="relative mb-3">
@@ -84,22 +84,22 @@ function DeleteConfirmDialog({
                 onChange={e => setMasterPwd(e.target.value)}
                 placeholder="Contraseña maestra"
                 autoFocus
-                className="w-full rounded-lg bg-surface-input px-3 py-2 pr-10 text-sm text-white outline-none ring-1 ring-white/10 focus:ring-red-400"
+                className="w-full rounded-lg bg-surface-input px-3 py-2 pr-10 text-sm text-primary outline-none ring-1 ring-border focus:ring-red-400"
               />
               <button
                 type="button"
                 onClick={() => setShowPwd(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted"
               >
                 {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
             {error && <p className="mb-2 text-xs text-red-400">{error}</p>}
             <div className="flex gap-2">
-              <button type="button" onClick={onCancel} className="flex-1 rounded-lg bg-white/5 py-2 text-sm text-slate-400 hover:bg-white/10">
+              <button type="button" onClick={onCancel} className="flex-1 rounded-lg bg-surface-subtle py-2 text-sm text-secondary hover:bg-surface-hover">
                 Cancelar
               </button>
-              <button type="submit" disabled={loading} className="flex-1 rounded-lg bg-red-500/80 py-2 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50">
+              <button type="submit" disabled={loading} className="flex-1 rounded-lg bg-red-500/80 py-2 text-sm font-medium text-primary hover:bg-red-500 disabled:opacity-50">
                 {loading ? 'Verificando…' : 'Eliminar'}
               </button>
             </div>
@@ -113,7 +113,7 @@ function DeleteConfirmDialog({
 /** Iconos informativos de salud — no bloquean nada, solo avisan visualmente. */
 function HealthBadges({ health }: { health?: AccountHealth }) {
   if (!health || (!health.isWeak && !health.isDuplicate)) {
-    return <span className="text-slate-700">—</span>
+    return <span className="text-muted">—</span>
   }
   return (
     <div className="flex items-center justify-center gap-1.5">
@@ -172,8 +172,8 @@ export default function AccountTable({ onEdit }: Props) {
   if (accounts.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center text-center p-8">
-        <Lock className="mb-3 h-12 w-12 text-slate-700" />
-        <p className="text-slate-500">No hay cuentas que coincidan con los filtros</p>
+        <Lock className="mb-3 h-12 w-12 text-muted" />
+        <p className="text-muted">No hay cuentas que coincidan con los filtros</p>
       </div>
     )
   }
@@ -183,7 +183,7 @@ export default function AccountTable({ onEdit }: Props) {
       <div className="flex-1 overflow-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-white/5 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+            <tr className="border-b border-border text-left text-xs font-medium uppercase tracking-wider text-muted">
               <th className="px-4 py-3">Plataforma</th>
               <th className="px-4 py-3">Usuario</th>
               <th className="px-4 py-3">Contraseña</th>
@@ -203,20 +203,20 @@ export default function AccountTable({ onEdit }: Props) {
               return (
                 <tr
                   key={account.id}
-                  className="group border-b border-white/5 transition hover:bg-white/5"
+                  className="group border-b border-border transition hover:bg-surface-hover"
                 >
                   {/* Platform */}
                   <td className="px-4 py-3">
-                    <span className="font-medium text-white">{account.platform}</span>
+                    <span className="font-medium text-primary">{account.platform}</span>
                   </td>
 
                   {/* Username */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
-                      <span className="font-mono text-xs text-slate-300">{account.username}</span>
+                      <span className="font-mono text-xs text-secondary">{account.username}</span>
                       <button
                         onClick={() => copyToClipboard(account.username, 'Usuario')}
-                        className="rounded p-0.5 text-slate-600 opacity-0 transition hover:text-slate-300 group-hover:opacity-100"
+                        className="rounded p-0.5 text-muted opacity-0 transition hover:text-secondary group-hover:opacity-100"
                         title="Copiar usuario"
                       >
                         <Copy className="h-3.5 w-3.5" />
@@ -227,19 +227,19 @@ export default function AccountTable({ onEdit }: Props) {
                   {/* Password */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
-                      <span className="font-mono text-xs text-slate-300">
+                      <span className="font-mono text-xs text-secondary">
                         {pwdVisible ? account.password : '••••••••'}
                       </span>
                       <button
                         onClick={() => togglePwd(account.id)}
-                        className="rounded p-0.5 text-slate-600 opacity-0 transition hover:text-slate-300 group-hover:opacity-100"
+                        className="rounded p-0.5 text-muted opacity-0 transition hover:text-secondary group-hover:opacity-100"
                         title={pwdVisible ? 'Ocultar' : 'Mostrar'}
                       >
                         {pwdVisible ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                       </button>
                       <button
                         onClick={() => copyToClipboard(account.password, 'Contraseña')}
-                        className="rounded p-0.5 text-slate-600 opacity-0 transition hover:text-slate-300 group-hover:opacity-100"
+                        className="rounded p-0.5 text-muted opacity-0 transition hover:text-secondary group-hover:opacity-100"
                         title="Copiar contraseña"
                       >
                         <Copy className="h-3.5 w-3.5" />
@@ -259,7 +259,7 @@ export default function AccountTable({ onEdit }: Props) {
                           secret={account.totp_secret}
                           onCopy={code => copyToClipboard(code, 'Código 2FA')}
                         />
-                      : <span className="text-slate-700">—</span>
+                      : <span className="text-muted">—</span>
                     }
                   </td>
 
@@ -281,13 +281,13 @@ export default function AccountTable({ onEdit }: Props) {
                     {account.url ? (
                       <button
                         onClick={() => openUrl(account.url)}
-                        className="rounded p-1 text-slate-500 hover:text-accent"
+                        className="rounded p-1 text-muted hover:text-accent"
                         title={account.url}
                       >
                         <ExternalLink className="h-4 w-4" />
                       </button>
                     ) : (
-                      <span className="text-slate-700">—</span>
+                      <span className="text-muted">—</span>
                     )}
                   </td>
 
@@ -296,13 +296,13 @@ export default function AccountTable({ onEdit }: Props) {
                     {account.is_favorite ? (
                       <Star className="inline h-4 w-4 fill-amber-400 text-amber-400" />
                     ) : (
-                      <span className="text-slate-700">—</span>
+                      <span className="text-muted">—</span>
                     )}
                   </td>
 
                   {/* Notes */}
                   <td className="max-w-[140px] px-4 py-3">
-                    <span className="block truncate text-xs text-slate-500" title={account.notes}>
+                    <span className="block truncate text-xs text-muted" title={account.notes}>
                       {account.notes || '—'}
                     </span>
                   </td>
@@ -312,14 +312,14 @@ export default function AccountTable({ onEdit }: Props) {
                     <div className="flex justify-end gap-1 opacity-0 transition group-hover:opacity-100">
                       <button
                         onClick={() => onEdit(account)}
-                        className="rounded-lg p-1.5 text-slate-500 hover:bg-white/5 hover:text-slate-300"
+                        className="rounded-lg p-1.5 text-muted hover:bg-surface-hover hover:text-secondary"
                         title="Editar"
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => setDeletingAccount(account)}
-                        className="rounded-lg p-1.5 text-slate-500 hover:bg-red-500/10 hover:text-red-400"
+                        className="rounded-lg p-1.5 text-muted hover:bg-red-500/10 hover:text-red-400"
                         title="Eliminar"
                       >
                         <Trash2 className="h-4 w-4" />

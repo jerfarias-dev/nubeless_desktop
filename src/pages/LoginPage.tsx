@@ -53,8 +53,8 @@ export default function LoginPage() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/20">
             <ShieldCheck className="h-9 w-9 text-accent" />
           </div>
-          <h1 className="text-2xl font-bold text-white">Password Manager</h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <h1 className="text-2xl font-bold text-primary">HomeVault</h1>
+          <p className="mt-1 text-sm text-secondary">
             {isFirstTime ? 'Crea tu contraseña maestra para comenzar' : 'Ingresa tu contraseña maestra'}
           </p>
         </div>
@@ -62,28 +62,28 @@ export default function LoginPage() {
         {/* Card */}
         <form
           onSubmit={handleSubmit}
-          className="rounded-2xl bg-surface-card p-8 shadow-2xl ring-1 ring-white/5"
+          className="rounded-2xl bg-surface-card p-8 shadow-2xl ring-1 ring-border"
         >
           <div className="space-y-4">
             {/* Password field */}
             <div>
-              <label className="mb-1.5 block text-sm font-medium text-slate-300">
+              <label className="mb-1.5 block text-sm font-medium text-secondary">
                 {isFirstTime ? 'Nueva contraseña maestra' : 'Contraseña maestra'}
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
                 <input
                   type={showPwd ? 'text' : 'password'}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
                   autoFocus
-                  className="w-full rounded-lg bg-surface-input py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-500 outline-none ring-1 ring-white/10 focus:ring-accent"
+                  className="w-full rounded-lg bg-surface-input py-2.5 pl-10 pr-10 text-sm text-primary placeholder-muted outline-none ring-1 ring-border focus:ring-accent"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPwd(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-secondary"
                 >
                   {showPwd ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -93,22 +93,22 @@ export default function LoginPage() {
             {/* Confirm field (first time only) */}
             {isFirstTime && (
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-slate-300">
+                <label className="mb-1.5 block text-sm font-medium text-secondary">
                   Confirmar contraseña
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
                   <input
                     type={showConfirm ? 'text' : 'password'}
                     value={confirm}
                     onChange={e => setConfirm(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full rounded-lg bg-surface-input py-2.5 pl-10 pr-10 text-sm text-white placeholder-slate-500 outline-none ring-1 ring-white/10 focus:ring-accent"
+                    className="w-full rounded-lg bg-surface-input py-2.5 pl-10 pr-10 text-sm text-primary placeholder-muted outline-none ring-1 ring-border focus:ring-accent"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirm(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-secondary"
                   >
                     {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -127,7 +127,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 w-full rounded-lg bg-accent py-2.5 text-sm font-semibold text-white transition hover:bg-accent-hover disabled:opacity-50"
+              className="mt-2 w-full rounded-lg bg-accent py-2.5 text-sm font-semibold text-primary transition hover:bg-accent-hover disabled:opacity-50"
             >
               {loading ? 'Procesando…' : isFirstTime ? 'Crear bóveda' : 'Desbloquear'}
             </button>
@@ -135,7 +135,7 @@ export default function LoginPage() {
 
           {/* Hint for first time */}
           {isFirstTime && (
-            <p className="mt-4 text-center text-xs text-slate-500">
+            <p className="mt-4 text-center text-xs text-muted">
               Mínimo 8 caracteres. Esta contraseña no se puede recuperar.
             </p>
           )}

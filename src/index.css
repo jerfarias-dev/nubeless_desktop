@@ -3,9 +3,39 @@
 @tailwind utilities;
 
 @layer base {
-  * {
-    box-sizing: border-box;
+  :root {
+    --bg-primary: #f5f7fa;
+    --bg-card: #ffffff;
+    --bg-input: #eef1f5;
+    --bg-hover: #e2e6ec;
+    --bg-subtle: rgba(0, 0, 0, 0.04);
+    --bg-sidebar: #ffffff;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --text-on-accent: #ffffff;
+    --border: rgba(0, 0, 0, 0.1);
+    --overlay: rgba(0, 0, 0, 0.4);
+    --inactive: #d1d5db;
   }
+
+  .dark {
+    --bg-primary: #1a1a2e;
+    --bg-card: #16213e;
+    --bg-input: #0f3460;
+    --bg-hover: #1f4068;
+    --bg-subtle: rgba(255, 255, 255, 0.05);
+    --bg-sidebar: #16213e;
+    --text-primary: #ffffff;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --text-on-accent: #ffffff;
+    --border: rgba(255, 255, 255, 0.08);
+    --overlay: rgba(0, 0, 0, 0.7);
+    --inactive: #374151;
+  }
+
+  * { box-sizing: border-box; }
 
   html, body, #root {
     height: 100%;
@@ -13,34 +43,35 @@
     padding: 0;
   }
 
+  html {
+    transition: background-color 0.3s ease;
+  }
+
   body {
-    @apply bg-surface text-white;
+    @apply bg-surface text-primary;
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     user-select: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { @apply bg-transparent; }
-  ::-webkit-scrollbar-thumb { @apply rounded-full bg-white/10; }
-  ::-webkit-scrollbar-thumb:hover { @apply bg-white/20; }
+  ::-webkit-scrollbar-thumb { @apply rounded-full bg-[var(--border)]; }
+  ::-webkit-scrollbar-thumb:hover { @apply opacity-80; }
 }
 
 @layer components {
   .field-label {
-    @apply mb-1 block text-xs font-medium text-slate-400;
+    @apply mb-1 block text-xs font-medium text-secondary;
   }
 
   .field-input {
-    @apply w-full rounded-lg bg-surface-input px-3 py-2 text-sm text-white
-           placeholder-slate-500 outline-none ring-1 ring-white/10
-           focus:ring-accent transition;
+    @apply w-full rounded-lg bg-surface-input px-3 py-2 text-sm text-primary
+           placeholder-muted outline-none ring-1 ring-border
+           focus:ring-accent transition-theme;
   }
 
-  /* Electron window drag regions */
   .drag-region {
     -webkit-app-region: drag;
     app-region: drag;
@@ -52,6 +83,6 @@
 
   .sidebar-sub-btn {
     @apply flex w-full items-center gap-2 rounded-md px-2 py-1.5
-           text-xs text-slate-400 hover:bg-surface-hover hover:text-white transition;
+           text-xs text-secondary hover:bg-surface-hover hover:text-primary transition-theme;
   }
 }

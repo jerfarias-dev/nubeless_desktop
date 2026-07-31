@@ -39,7 +39,7 @@ export default function MainPage() {
   const closeDialog = () => { setShowAccountDialog(false); setEditingAccount(undefined) }
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-surface text-white">
+    <div className="flex h-screen flex-col overflow-hidden bg-surface text-primary">
       {/* Barra de título personalizada — solo Windows */}
       {isWin && <WinTitleBar />}
 
@@ -67,14 +67,14 @@ export default function MainPage() {
         )}
 
         {/* Toolbar — drag region para arrastrar la ventana */}
-        <header className="drag-region flex items-center justify-between border-b border-white/5 px-6 py-3">
+        <header className="drag-region flex items-center justify-between border-b border-border px-6 py-3">
           <div className="no-drag">
-            <h1 className="text-base font-semibold text-white">Cuentas guardadas</h1>
-            <p className="text-xs text-slate-500">{accounts.length} resultados</p>
+            <h1 className="text-base font-semibold text-primary">Cuentas guardadas</h1>
+            <p className="text-xs text-muted">{accounts.length} resultados</p>
           </div>
           <button
             onClick={openCreate}
-            className="no-drag flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent-hover"
+            className="no-drag flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-primary transition hover:bg-accent-hover"
           >
             <Plus className="h-4 w-4" />
             Nueva cuenta
@@ -82,7 +82,7 @@ export default function MainPage() {
         </header>
 
         {/* Filters */}
-        <div className="border-b border-white/5">
+        <div className="border-b border-border">
           <SearchFilters />
         </div>
 
@@ -92,7 +92,7 @@ export default function MainPage() {
         </div>
 
         {/* Status bar */}
-        <footer className="flex items-center gap-2 border-t border-white/5 px-4 py-2 text-xs text-slate-500">
+        <footer className="flex items-center gap-2 border-t border-border px-4 py-2 text-xs text-muted">
           {statusMessage ? (
             <>
               {statusMessage.type === 'success' && <CheckCircle className="h-3.5 w-3.5 text-green-400" />}
@@ -107,7 +107,7 @@ export default function MainPage() {
               </span>
             </>
           ) : (
-            <span>Password Manager — 100% local</span>
+            <span>HomeVault — 100% local</span>
           )}
         </footer>
       </div>

@@ -37,13 +37,36 @@ export function registerSyncHandlers(crypto: CryptoService): void {
       )
 
       const localCategories = localCategoryRows.map(categoryRowToSync)
+
+      // 1b. Normalizar UUIDs de categorías entrantes: si el móvil trae una
+      //     categoría con el mismo nombre que una local, adoptamos el UUID local.
+      //     Esto evita UNIQUE constraint en `categories.name` cuando el móvil
+      //     creó categorías standalone con UUIDs distintos a los del desktop.
+      const localCatByName = new Map(localCategories.map(c => [c.name, c]))
+      const uuidRemap = new Map<string, string>()  // oldUuid → newUuid
+      const incomingCatsNormalized = incoming.categories.map(c => {
+        const local = localCatByName.get(c.name)
+        if (local && local.uuid !== c.uuid) {
+          uuidRemap.set(c.uuid, local.uuid)
+          return { ...c, uuid: local.uuid }
+        }
+        return c
+      })
+
+      // 1c. Reemplazar category_uuid en las cuentas entrantes si la categoría
+      //     fue renombrada al UUID local.
+      const incomingAccountsNormalized = incoming.accounts.map(a => {
+        const newUuid = uuidRemap.get(a.category_uuid)
+        return newUuid ? { ...a, category_uuid: newUuid } : a
+      })
+
       const localAccounts = getAllAccountsForSync().map(r =>
         accountRowToSync(r, c => crypto.decryptPassword(c), localCategoryUuidById)
       )
 
-      // 2. Merge LWW
-      const accountMerge  = mergeByUuid<SyncAccount>(localAccounts, incoming.accounts)
-      const categoryMerge = mergeByUuid<SyncCategory>(localCategories, incoming.categories)
+      // 2. Merge LWW (con UUIDs normalizados)
+      const accountMerge  = mergeByUuid<SyncAccount>(localAccounts, incomingAccountsNormalized)
+      const categoryMerge = mergeByUuid<SyncCategory>(localCategories, incomingCatsNormalized)
 
       // 3. Aplicar cambios LOCALES dentro de una transacción.
       //    ORDEN IMPORTA: categorías PRIMERO, luego cuentas (la FK constraint
@@ -91,7 +114,11 @@ export function registerSyncHandlers(crypto: CryptoService): void {
     }
 
     const session = await syncServer.start(mergeHandler)
-    return { qrData: session.qrData, expiresAt: session.expiresAt }
+    return {
+      qrData: session.qrData,
+      expiresAt: session.expiresAt,
+      ips: session.ips,    // útil para mostrar diagnóstico en la UI
+    }
   })
 
   ipcMain.handle('sync:stop', async () => {

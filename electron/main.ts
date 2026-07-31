@@ -29,6 +29,7 @@ function createWindow(userDataPath: string): BrowserWindow {
     minWidth: 900,
     minHeight: 600,
     show: false,
+    title: 'HomeVault',
     backgroundColor: '#1a1a2e',
     icon: iconPath,
     titleBarStyle: 'hidden',

@@ -1,9 +1,9 @@
 {
   "name": "password-manager-v2",
   "version": "1.0.0",
-  "description": "Local Desktop Password Manager - Electron + React",
+  "description": "HomeVault — gestor de contraseñas local de escritorio",
   "main": "out/main/index.js",
-  "author": "Password Manager",
+  "author": "HomeVault",
   "private": true,
   "scripts": {
     "dev": "electron-vite dev",

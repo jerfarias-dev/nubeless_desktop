@@ -61,7 +61,7 @@ export default function TotpCodeCell({ secret, onCopy }: Props) {
     return <span className="font-mono text-xs text-red-400">inválido</span>
   }
   if (!data) {
-    return <span className="font-mono text-xs text-slate-600">…</span>
+    return <span className="font-mono text-xs text-muted">…</span>
   }
 
   // Formatea "123456" como "123 456" para legibilidad
@@ -78,7 +78,7 @@ export default function TotpCodeCell({ secret, onCopy }: Props) {
         {formatted}
       </span>
       {/* Mini barra de progreso */}
-      <div className="h-1 w-8 overflow-hidden rounded-full bg-white/10">
+      <div className="h-1 w-8 overflow-hidden rounded-full bg-border">
         <div
           className="h-full transition-all duration-1000 ease-linear"
           style={{ width: `${pct}%`, backgroundColor: color }}
@@ -86,7 +86,7 @@ export default function TotpCodeCell({ secret, onCopy }: Props) {
       </div>
       <button
         onClick={() => onCopy(data.code)}
-        className="rounded p-0.5 text-slate-600 opacity-0 transition hover:text-slate-300 group-hover:opacity-100"
+        className="rounded p-0.5 text-muted opacity-0 transition hover:text-secondary group-hover:opacity-100"
         title="Copiar código TOTP"
       >
         <Copy className="h-3.5 w-3.5" />
