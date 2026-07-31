@@ -118,6 +118,12 @@ export class SyncServer {
     })
     const qrData = `pmvault://${Buffer.from(qrPayload).toString('base64')}`
 
+    // K ya quedó embebido en qrData (canal óptico) y no vuelve a usarse en
+    // memoria: cifrado y auth usan encKey = HKDF(K). Borramos la Buffer de K
+    // para minimizar la vida del secreto en el proceso.
+    this.sessionKey.fill(0)
+    this.sessionKey = null
+
     return new Promise((resolve, reject) => {
       this.server = createServer((req, res) => this.handleRequest(req, res))
 
@@ -132,10 +138,10 @@ export class SyncServer {
   }
 
   private handleRequest(req: IncomingMessage, res: ServerResponse): void {
-    // CORS — móvil hace fetch con Authorization
+    // CORS — el móvil hace fetch sin credenciales (ya no se envía Authorization)
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
     if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return }
 
     // TTL
@@ -162,12 +168,19 @@ export class SyncServer {
       if (env.v !== 3) throw new Error('versión de protocolo no soportada (se requiere v3)')
       if (!env.data) throw new Error('payload sin data')
 
+      // Sesión ya cerrada (p.ej. race con stop()): tratar como expirada.
+      const encKey = this.encKey
+      if (!encKey) {
+        this.respondJson(res, 401, { error: 'expired' })
+        return
+      }
+
       // Autenticación = descifrado exitoso. Si el tag GCM no valida, el emisor
       // no posee K → 401. Envolvemos SOLO el descifrado para distinguir
       // "no autorizado" de un error de merge posterior.
       let plain: string
       try {
-        plain = this.crypto.decryptWithKey(env.data, this.encKey!)
+        plain = this.crypto.decryptWithKey(env.data, encKey)
       } catch {
         this.respondJson(res, 401, { error: 'unauthorized' })
         return
@@ -187,16 +200,21 @@ export class SyncServer {
         this.respondJson(res, 409, { error: 'session already consumed' })
         return
       }
-      this.consumed = true
       this.emit({ type: 'connected' })
 
-      // Delegar al orchestrator que hace el merge + aplica a la DB del desktop
+      // Delegar al orchestrator que hace el merge + aplica a la DB del desktop.
+      // El merge es SÍNCRONO (better-sqlite3), así que no hay ventana de
+      // concurrencia entre este punto y marcar `consumed`.
       const merged = this.mergeHandler!(incoming)
+
+      // Marcamos consumida SOLO tras un merge exitoso: si `mergeHandler` lanza,
+      // la sesión sigue viva y el cliente puede reintentar dentro del TTL.
+      this.consumed = true
 
       // Cifrar respuesta con la misma clave derivada + timestamp de servidor.
       const responseEncrypted = this.crypto.encryptWithKey(
         JSON.stringify({ ...merged, ts: Date.now() }),
-        this.encKey!
+        encKey
       )
       this.respondJson(res, 200, { data: responseEncrypted, v: 3 })
 
@@ -217,6 +235,10 @@ export class SyncServer {
   }
 
   async stop(): Promise<void> {
+    // Invalidar la sesión ANTES de liberar claves y cerrar el server: si entra
+    // una request mientras el server aún acepta conexiones, el chequeo de TTL
+    // en handleRequest la rechaza con 401 en vez de tocar claves ya liberadas.
+    this.expiresAt = 0
     if (this.sessionKey) { this.sessionKey.fill(0); this.sessionKey = null }
     if (this.encKey) { this.encKey.fill(0); this.encKey = null }
     this.consumed = false

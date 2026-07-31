@@ -119,7 +119,7 @@ electron-builder permite compilar para Windows desde macOS/Linux (necesita `wine
 
 - La contraseña maestra **nunca se almacena en disco**; solo la sal PBKDF2 y un token de verificación cifrado
 - Cada cuenta se cifra individualmente con AES-256-GCM
-- El sync WiFi usa una clave de sesión efímera (TTL 2 min, un solo uso). La clave se intercambia **solo por el QR** (canal óptico) y **nunca viaja por la red**: el móvil deriva `Kenc = HKDF-SHA256(clave_QR)` y cifra el cuerpo con ella; la autenticación es el propio tag AES-GCM (solo quien posee la clave produce un cifrado válido). Sin bearer token en claro; con `timestamp` anti-replay embebido en el payload cifrado
+- El sync WiFi usa una clave de sesión efímera (TTL 2 min, un solo uso). La clave se intercambia **solo por el QR** (canal óptico) y **nunca viaja por la red**: el móvil deriva `Kenc = HKDF-SHA256(clave_QR)` y cifra el cuerpo con ella; la autenticación es el propio tag AES-GCM (solo quien posee la clave produce un cifrado válido). Sin bearer token en claro; con un campo `ts` (timestamp) anti-replay embebido en el payload cifrado
 - Los datos se guardan en el `userData` del OS, completamente fuera del repositorio
 
 ## Importar contraseñas vía CSV
