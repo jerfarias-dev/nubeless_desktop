@@ -107,7 +107,7 @@ export default function MainPage() {
               </span>
             </>
           ) : (
-            <span>HomeVault — 100% local</span>
+            <span>Nubeless — 100% local</span>
           )}
         </footer>
       </div>

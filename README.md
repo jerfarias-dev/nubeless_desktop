@@ -145,4 +145,5 @@ Ver también: [`password-manager-mobile`](https://github.com/jerfarias-dev/passw
 
 ## Licencia
 
-Uso personal. Sin licencia de distribución.
+[MIT](LICENSE) © 2026 Jesus Fernando Farias Nambo. El binario se distribuye gratis; el código es
+libre de usar, modificar y redistribuir con atribución.

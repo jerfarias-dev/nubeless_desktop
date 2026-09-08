@@ -1,6 +1,6 @@
-appId: com.tucorp.passwordmanager
-productName: HomeVault
-copyright: Copyright © 2025
+appId: mx.jerfarias.nubeless.desktop
+productName: Nubeless
+copyright: Copyright © 2026 Jesus Fernando Farias Nambo
 
 directories:
   buildResources: resources
@@ -30,7 +30,7 @@ mac:
   darkModeSupport: true
 
 dmg:
-  title: HomeVault
+  title: Nubeless
   backgroundColor: "#1a1a2e"
   window:
     width: 540
@@ -47,7 +47,7 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: HomeVault
+  shortcutName: Nubeless
 
 linux:
   icon: resources/icon.png

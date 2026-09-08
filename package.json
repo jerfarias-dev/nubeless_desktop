@@ -1,9 +1,9 @@
 {
   "name": "password-manager-v2",
   "version": "1.0.0",
-  "description": "HomeVault — gestor de contraseñas local de escritorio",
+  "description": "Nubeless — gestor de contraseñas local de escritorio",
   "main": "out/main/index.js",
-  "author": "HomeVault",
+  "author": "Jesus Fernando Farias Nambo",
   "private": true,
   "scripts": {
     "dev": "electron-vite dev",

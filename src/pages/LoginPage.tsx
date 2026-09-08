@@ -53,7 +53,7 @@ export default function LoginPage() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/20">
             <ShieldCheck className="h-9 w-9 text-accent" />
           </div>
-          <h1 className="text-2xl font-bold text-primary">HomeVault</h1>
+          <h1 className="text-2xl font-bold text-primary">Nubeless</h1>
           <p className="mt-1 text-sm text-secondary">
             {isFirstTime ? 'Crea tu contraseña maestra para comenzar' : 'Ingresa tu contraseña maestra'}
           </p>

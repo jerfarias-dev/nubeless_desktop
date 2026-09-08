@@ -460,7 +460,7 @@ function AboutSection() {
           <Lock className="h-7 w-7 text-accent" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-primary">HomeVault</h3>
+          <h3 className="text-lg font-semibold text-primary">Nubeless</h3>
           <p className="text-sm text-muted">Versión {APP_VERSION}</p>
         </div>
       </div>

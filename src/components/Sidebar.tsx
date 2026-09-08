@@ -82,7 +82,7 @@ export default function Sidebar({ onManageCategories, onSync, onOpenSettings }: 
       {/* Logo — drag region para arrastrar la ventana */}
       <div className={`drag-region flex items-center gap-2.5 border-b border-border px-4 ${isMac ? 'pt-8 pb-3' : isWin ? 'py-3' : 'py-4'}`}>
         <ShieldCheck className="no-drag h-6 w-6 text-accent" />
-        <span className="no-drag font-semibold text-primary">HomeVault</span>
+        <span className="no-drag font-semibold text-primary">Nubeless</span>
       </div>
 
       {/* Stats */}

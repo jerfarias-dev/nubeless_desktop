@@ -11,7 +11,7 @@ export default function WinTitleBar() {
     <div className="drag-region flex h-8 shrink-0 items-center justify-between bg-surface-card select-none border-b border-border">
       {/* Título de la app */}
       <span className="no-drag pl-4 text-xs font-medium text-muted">
-        HomeVault
+        Nubeless
       </span>
 
       {/* Controles de ventana */}
