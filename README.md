@@ -1,6 +1,8 @@
-# Password Manager — Desktop
+# Nubeless — Desktop
 
 Gestor de contraseñas local para escritorio. Los datos se almacenan **únicamente en tu equipo**, cifrados con AES-256-GCM. Ningún dato sale a Internet.
+
+Descargas (`.dmg` / `.exe`): [GitHub Releases](https://github.com/jerfarias-dev/nubeless_desktop/releases).
 
 ## Características
 
@@ -28,8 +30,14 @@ Gestor de contraseñas local para escritorio. Los datos se almacenan **únicamen
 
 ## Requisitos
 
-- Node.js 20+
+- Node.js 20 o 22 (LTS)
 - npm 10+
+
+> ⚠️ Evita Node 24+: `better-sqlite3` compila desde código fuente si no hay binario
+> prebuilt para tu versión de Node, y las versiones muy nuevas suelen romper la
+> build nativa (headers de V8 con C++20 que node-gyp/clang no siempre soportan).
+> Con Node 20/22 LTS instala el binario precompilado sin problema. Si usas `nvm`:
+> `nvm install 22 && nvm use 22`.
 
 ## Desarrollo
 
@@ -55,8 +63,8 @@ Esto produce dos archivos en `dist/`:
 
 | Archivo | Arquitectura | Para |
 |---------|-------------|------|
-| `Password Manager-1.0.0.dmg` | x64 (Intel) | Macs Intel |
-| `Password Manager-1.0.0-arm64.dmg` | arm64 | Apple Silicon (M1/M2/M3/M4) |
+| `Nubeless-1.0.0.dmg` | x64 (Intel) | Macs Intel |
+| `Nubeless-1.0.0-arm64.dmg` | arm64 | Apple Silicon (M1/M2/M3/M4) |
 
 **Instalación:**
 1. Doble clic al `.dmg` correspondiente a tu Mac
@@ -75,14 +83,14 @@ Esto produce el instalador NSIS en `dist/`:
 
 | Archivo | Para |
 |---------|------|
-| `Password Manager Setup 1.0.0.exe` | Windows x64 |
+| `Nubeless Setup 1.0.0.exe` | Windows x64 |
 
 **Instalación:**
 1. Doble clic al `.exe`
 2. Acepta el aviso de SmartScreen (es normal en apps sin firma comercial: clic en **Más información → Ejecutar de todas formas**)
 3. Elige carpeta de instalación
 4. Marca **crear acceso directo en el escritorio**
-5. La app aparece en el menú Inicio como _Password Manager_
+5. La app aparece en el menú Inicio como _Nubeless_
 
 ### Compilar sin empaquetar (para pruebas rápidas)
 
