@@ -1,6 +1,6 @@
 import { createServer, type Server, type IncomingMessage, type ServerResponse } from 'node:http'
 import { createServer as createNetServer } from 'node:net'
-import { randomBytes, timingSafeEqual } from 'node:crypto'
+import { randomBytes } from 'node:crypto'
 import { networkInterfaces } from 'node:os'
 import type { CryptoService } from '../crypto/cryptoService'
 import type { SyncAccount, SyncCategory, MergeStats } from './mergeService'
@@ -39,7 +39,12 @@ export type MergeHandler = (incoming: SyncStatePayload) => SyncStatePayload
 
 export class SyncServer {
   private server: Server | null = null
+  /** Secreto de sesión K — se embebe en el QR (canal óptico) y NUNCA viaja por red. */
   private sessionKey: Buffer | null = null
+  /** Clave de cifrado derivada Kenc = HKDF(K). Es la que realmente cifra el cuerpo. */
+  private encKey: Buffer | null = null
+  /** Una sola sincronización exitosa por sesión — bloquea replays dentro de la ventana. */
+  private consumed = false
   private expiresAt = 0
   private onEvent?: (e: SyncEvent) => void
   private mergeHandler?: MergeHandler
@@ -90,23 +95,34 @@ export class SyncServer {
 
     this.mergeHandler = mergeHandler
     this.sessionKey   = randomBytes(32)
+    this.encKey       = this.crypto.deriveSyncKey(this.sessionKey)
+    this.consumed     = false
     this.expiresAt    = Date.now() + SESSION_TTL_MS
 
     const port = await this.findFreePort()
     const ips  = this.getAllLocalIPs()
     const primaryIp = ips[0]
 
-    // QR v2: incluye `ips` (todas las interfaces) y `ip` (primaria) para
-    // compatibilidad hacia atrás con apps móviles v1.
+    // QR v3: incluye `ips` (todas las interfaces) y `ip` (primaria). El campo
+    // `key` es el secreto de sesión K, que viaja SOLO por el QR (óptico). El
+    // móvil deriva Kenc = HKDF(K) igual que el desktop y cifra con ella; la
+    // clave nunca se manda por HTTP (a diferencia de v2, que la reenviaba como
+    // bearer token en claro).
     const qrPayload = JSON.stringify({
-      ip: primaryIp,        // fallback v1
-      ips,                  // v2 — móvil probará cada una
+      ip: primaryIp,        // fallback para diagnóstico
+      ips,                  // móvil probará cada una
       port,
       key: this.sessionKey.toString('base64'),
       exp: this.expiresAt,
-      v: 2
+      v: 3
     })
     const qrData = `pmvault://${Buffer.from(qrPayload).toString('base64')}`
+
+    // K ya quedó embebido en qrData (canal óptico) y no vuelve a usarse en
+    // memoria: cifrado y auth usan encKey = HKDF(K). Borramos la Buffer de K
+    // para minimizar la vida del secreto en el proceso.
+    this.sessionKey.fill(0)
+    this.sessionKey = null
 
     return new Promise((resolve, reject) => {
       this.server = createServer((req, res) => this.handleRequest(req, res))
@@ -122,10 +138,10 @@ export class SyncServer {
   }
 
   private handleRequest(req: IncomingMessage, res: ServerResponse): void {
-    // CORS — móvil hace fetch con Authorization
+    // CORS — el móvil hace fetch sin credenciales (ya no se envía Authorization)
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
-    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
     if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return }
 
     // TTL
@@ -135,16 +151,9 @@ export class SyncServer {
       return
     }
 
-    // Token timing-safe
-    const authHeader = req.headers['authorization'] ?? ''
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
-    if (!this.verifyToken(token)) {
-      this.respondJson(res, 401, { error: 'unauthorized' })
-      return
-    }
-
+    // Ya NO hay bearer token: la autenticación es implícita en el descifrado
+    // AES-GCM del cuerpo (solo quien posee K puede producir un tag válido).
     if (req.url === '/sync' && req.method === 'POST') {
-      this.emit({ type: 'connected' })
       this.handleSync(req, res)
       return
     }
@@ -152,34 +161,66 @@ export class SyncServer {
     res.writeHead(404); res.end()
   }
 
-  private verifyToken(token: string): boolean {
-    if (!this.sessionKey) return false
-    const expected = this.sessionKey.toString('base64')
-    const tokBuf = Buffer.from(token)
-    const expBuf = Buffer.from(expected)
-    return tokBuf.length === expBuf.length && timingSafeEqual(tokBuf, expBuf)
-  }
-
   private async handleSync(req: IncomingMessage, res: ServerResponse): Promise<void> {
     try {
       const body = await readBody(req)
-      const env = JSON.parse(body) as { data: string; v: number }
+      const env = JSON.parse(body) as { data: string; v?: number }
+      if (env.v !== 3) throw new Error('versión de protocolo no soportada (se requiere v3)')
       if (!env.data) throw new Error('payload sin data')
 
-      // Descifrar payload entrante con la session key
-      const plain = this.crypto.decryptWithKey(env.data, this.sessionKey!)
-      const incoming = JSON.parse(plain) as SyncStatePayload
+      // Sesión ya cerrada (p.ej. race con stop()): tratar como expirada.
+      const encKey = this.encKey
+      if (!encKey) {
+        this.respondJson(res, 401, { error: 'expired' })
+        return
+      }
 
-      // Delegar al orchestrator que hace el merge + aplica a la DB del desktop
+      // Autenticación = descifrado exitoso. Si el tag GCM no valida, el emisor
+      // no posee K → 401. Envolvemos SOLO el descifrado para distinguir
+      // "no autorizado" de un error de merge posterior.
+      let plain: string
+      try {
+        plain = this.crypto.decryptWithKey(env.data, encKey)
+      } catch {
+        this.respondJson(res, 401, { error: 'unauthorized' })
+        return
+      }
+
+      const incoming = JSON.parse(plain) as SyncStatePayload & { ts?: number }
+
+      // Frescura: rechaza payloads con timestamp fuera de la ventana de sesión
+      // (defensa anti-replay adicional al TTL y al single-use).
+      if (typeof incoming.ts === 'number' && Math.abs(Date.now() - incoming.ts) > SESSION_TTL_MS) {
+        this.respondJson(res, 401, { error: 'stale' })
+        return
+      }
+
+      // Single-use: una sola sincronización válida por sesión.
+      if (this.consumed) {
+        this.respondJson(res, 409, { error: 'session already consumed' })
+        return
+      }
+      this.emit({ type: 'connected' })
+
+      // Delegar al orchestrator que hace el merge + aplica a la DB del desktop.
+      // El merge es SÍNCRONO (better-sqlite3), así que no hay ventana de
+      // concurrencia entre este punto y marcar `consumed`.
       const merged = this.mergeHandler!(incoming)
 
-      // Cifrar respuesta con la misma session key
-      const responseEncrypted = this.crypto.encryptWithKey(JSON.stringify(merged), this.sessionKey!)
-      this.respondJson(res, 200, { data: responseEncrypted, v: 1 })
+      // Marcamos consumida SOLO tras un merge exitoso: si `mergeHandler` lanza,
+      // la sesión sigue viva y el cliente puede reintentar dentro del TTL.
+      this.consumed = true
+
+      // Cifrar respuesta con la misma clave derivada + timestamp de servidor.
+      const responseEncrypted = this.crypto.encryptWithKey(
+        JSON.stringify({ ...merged, ts: Date.now() }),
+        encKey
+      )
+      this.respondJson(res, 200, { data: responseEncrypted, v: 3 })
 
       if (merged.stats) this.emit({ type: 'merged', stats: merged.stats })
 
-      // Una sola sincronización por sesión — apagamos tras responder
+      // Apagamos tras responder
       setTimeout(() => this.stop(), 500)
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'error'
@@ -194,7 +235,13 @@ export class SyncServer {
   }
 
   async stop(): Promise<void> {
+    // Invalidar la sesión ANTES de liberar claves y cerrar el server: si entra
+    // una request mientras el server aún acepta conexiones, el chequeo de TTL
+    // en handleRequest la rechaza con 401 en vez de tocar claves ya liberadas.
+    this.expiresAt = 0
     if (this.sessionKey) { this.sessionKey.fill(0); this.sessionKey = null }
+    if (this.encKey) { this.encKey.fill(0); this.encKey = null }
+    this.consumed = false
     this.mergeHandler = undefined
     await new Promise<void>(resolve => {
       if (!this.server) { resolve(); return }
