@@ -41,6 +41,8 @@ win:
   target:
     - target: nsis
       arch: [x64]
+    - target: msix
+      arch: [x64]
 
 nsis:
   oneClick: false
@@ -48,6 +50,15 @@ nsis:
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: Nubeless
+
+# Identidad real de Partner Center (app "Nubeless", tipo MSIX o PWA, reservada 2026-09-22).
+msix:
+  identityName: JesusFernandoFariasNambo.Nubeless
+  publisher: "CN=B76C790E-1B64-4187-A7FD-D53596AD247D"
+  publisherDisplayName: Jesus Fernando Farias Nambo
+  displayName: Nubeless
+  applicationId: Nubeless
+  createMsixupload: true
 
 linux:
   icon: resources/icon.png
