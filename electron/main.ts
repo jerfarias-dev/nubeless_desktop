@@ -17,10 +17,10 @@ const isDev = !app.isPackaged
 
 function createWindow(userDataPath: string): BrowserWindow {
   // En dev el icono del dock/taskbar viene de aquí; en build lo aplica
-  // electron-builder desde resources/icon.* Resolvemos siempre el PNG (es el
+  // electron-builder desde build/icon.* Resolvemos siempre el PNG (es el
   // único formato que BrowserWindow acepta cross-platform en runtime).
   const iconPath = isDev
-    ? join(__dirname, '../../resources/icon.png')   // dev: relativo al out/main
+    ? join(__dirname, '../../build/icon.png')   // dev: relativo al out/main
     : join(process.resourcesPath, 'icon.png')
 
   const win = new BrowserWindow({
@@ -66,7 +66,7 @@ app.whenReady().then(() => {
   // macOS dev: el icono del dock no toma el del BrowserWindow, hay que setearlo
   // explícitamente. En el build empaquetado, electron-builder ya lo asigna correctamente.
   if (isDev && process.platform === 'darwin' && app.dock) {
-    app.dock.setIcon(join(__dirname, '../../resources/icon.png'))
+    app.dock.setIcon(join(__dirname, '../../build/icon.png'))
   }
 
   const crypto = new CryptoService(userDataPath)

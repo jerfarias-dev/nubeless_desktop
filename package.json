@@ -1,6 +1,6 @@
 {
   "name": "password-manager-v2",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Nubeless — gestor de contraseñas local de escritorio",
   "main": "out/main/index.js",
   "author": "Jesus Fernando Farias Nambo",

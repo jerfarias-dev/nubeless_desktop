@@ -3,7 +3,7 @@ productName: Nubeless
 copyright: Copyright © 2026 Jesus Fernando Farias Nambo
 
 directories:
-  buildResources: resources
+  buildResources: build
   output: dist
 
 # electron-vite bundlea todo — solo necesitamos out/ y la native lib
@@ -16,6 +16,11 @@ files:
   - "!node_modules/**/test/**"
   - "!node_modules/**/docs/**"
 
+# el BrowserWindow lee el PNG desde process.resourcesPath
+extraResources:
+  - from: build/icon.png
+    to: icon.png
+
 asarUnpack:
   - node_modules/better-sqlite3/**/*
   - node_modules/bindings/**/*
@@ -23,7 +28,7 @@ asarUnpack:
 
 mac:
   category: public.app-category.utilities
-  icon: resources/icon.icns
+  icon: build/icon.icns
   target:
     - target: dmg
       arch: [x64, arm64]
@@ -37,7 +42,7 @@ dmg:
     height: 380
 
 win:
-  icon: resources/icon.ico
+  icon: build/icon.ico
   target:
     - target: nsis
       arch: [x64]
@@ -49,6 +54,9 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  installerHeaderIcon: build/icon.ico
   shortcutName: Nubeless
 
 # Identidad real de Partner Center (app "Nubeless", tipo MSIX o PWA, reservada 2026-09-22).
@@ -61,7 +69,7 @@ msix:
   createMsixupload: true
 
 linux:
-  icon: resources/icon.png
+  icon: build/icon.png
   category: Utility
   target:
     - target: AppImage
