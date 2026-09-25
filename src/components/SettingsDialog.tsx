@@ -16,7 +16,7 @@ interface Props {
 type Section = 'security' | 'backups' | 'appearance' | 'about'
 
 // Versión de la app — TODO: exponer desde package.json vía preload
-const APP_VERSION = '1.0.0'
+const APP_VERSION = '1.0.1'
 
 const SECTIONS: { id: Section; label: string; icon: typeof Shield }[] = [
   { id: 'security',   label: 'Seguridad',  icon: Shield },
