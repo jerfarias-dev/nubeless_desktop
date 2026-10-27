@@ -2,7 +2,8 @@ import {
   randomBytes,
   pbkdf2Sync,
   createCipheriv,
-  createDecipheriv
+  createDecipheriv,
+  hkdfSync
 } from 'node:crypto'
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
@@ -15,6 +16,13 @@ const PBKDF2_ITERATIONS = 600_000
 const PBKDF2_DIGEST = 'sha512'
 const SALT_LENGTH = 32
 const VERIFY_PLAINTEXT = 'PASSWORD_MANAGER_OK'
+
+// Contexto HKDF para derivar la clave de cifrado del sync a partir del secreto
+// del QR. El salt/info son constantes de dominio (no secretas): solo separan
+// esta subclave de cualquier otro uso del mismo material. DEBEN coincidir
+// byte-a-byte con la app móvil (ver crypto_service.dart) o el sync falla.
+const SYNC_HKDF_SALT = Buffer.from('homevault/sync/v3')
+const SYNC_HKDF_INFO = Buffer.from('enc')
 
 export class CryptoService {
   private derivedKey: Buffer | null = null
@@ -136,6 +144,21 @@ export class CryptoService {
   decryptPassword(ciphertext: string): string {
     if (!this.derivedKey) throw new Error('Vault is locked')
     return this.decrypt(ciphertext, this.derivedKey)
+  }
+
+  // --- Sync session key derivation ---
+
+  /**
+   * Deriva la clave de cifrado del sync (Kenc) a partir del secreto de sesión
+   * del QR (K) vía HKDF-SHA256. El secreto K se intercambia SOLO por el QR
+   * (canal óptico fuera de banda) y NUNCA se transmite por la red. La clave AES
+   * real es esta subclave derivada, distinta de K. Debe producir exactamente
+   * los mismos bytes que `CryptoService.deriveSyncKey` del móvil.
+   */
+  deriveSyncKey(sessionKey: Buffer): Buffer {
+    return Buffer.from(
+      hkdfSync('sha256', sessionKey, SYNC_HKDF_SALT, SYNC_HKDF_INFO, KEY_LENGTH)
+    )
   }
 
   // --- Generic key-based encrypt/decrypt (used for sync session) ---
