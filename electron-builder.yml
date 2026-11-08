@@ -21,6 +21,9 @@ extraResources:
   - from: build/icon.png
     to: icon.png
 
+# Firma ad-hoc en macOS (ver scripts/adhoc-sign.cjs) — sin ella, Apple Silicon dice "dañada"
+afterPack: scripts/adhoc-sign.cjs
+
 asarUnpack:
   - node_modules/better-sqlite3/**/*
   - node_modules/bindings/**/*
@@ -46,7 +49,7 @@ win:
   target:
     - target: nsis
       arch: [x64]
-    - target: msix
+    - target: appx
       arch: [x64]
 
 nsis:
@@ -60,13 +63,13 @@ nsis:
   shortcutName: Nubeless
 
 # Identidad real de Partner Center (app "Nubeless", tipo MSIX o PWA, reservada 2026-09-22).
-msix:
+# electron-builder 24 no tiene target "msix": el paquete de Store es "appx" (Partner Center lo acepta).
+appx:
   identityName: JesusFernandoFariasNambo.Nubeless
   publisher: "CN=B76C790E-1B64-4187-A7FD-D53596AD247D"
   publisherDisplayName: Jesus Fernando Farias Nambo
   displayName: Nubeless
   applicationId: Nubeless
-  createMsixupload: true
 
 linux:
   icon: build/icon.png
