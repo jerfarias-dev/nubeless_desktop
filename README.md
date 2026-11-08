@@ -127,7 +127,7 @@ electron-builder permite compilar para Windows desde macOS/Linux (necesita `wine
 
 - La contraseña maestra **nunca se almacena en disco**; solo la sal PBKDF2 y un token de verificación cifrado
 - Cada cuenta se cifra individualmente con AES-256-GCM
-- El sync WiFi usa una clave de sesión efímera con TTL de 2 minutos, validada con `timingSafeEqual`
+- El sync WiFi usa una clave de sesión efímera con TTL de 2 minutos que solo viaja en el QR; por la red va un token derivado por HMAC-SHA256, validado con `timingSafeEqual`
 - Los datos se guardan en el `userData` del OS, completamente fuera del repositorio
 
 ## Importar contraseñas vía CSV
@@ -149,7 +149,7 @@ GitHub,miusuario,mipassword,https://github.com,,Trabajo,0
 2. En el desktop: Sincronizar → aparece un QR con TTL de 2 minutos
 3. Escanea con la app móvil → ingresa tu contraseña maestra → listo
 
-Ver también: [`password-manager-mobile`](https://github.com/jerfarias-dev/password-manager-mobile) para la app móvil Flutter.
+Ver también: [`nubeless_mobile`](https://github.com/jerfarias-dev/nubeless_mobile) para la app móvil Flutter.
 
 ## Licencia
 

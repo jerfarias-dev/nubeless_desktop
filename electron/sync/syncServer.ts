@@ -2,7 +2,7 @@ import { createServer, type Server, type IncomingMessage, type ServerResponse } 
 import { createServer as createNetServer } from 'node:net'
 import { randomBytes, timingSafeEqual } from 'node:crypto'
 import { networkInterfaces } from 'node:os'
-import type { CryptoService } from '../crypto/cryptoService'
+import { deriveSyncAuthToken, type CryptoService } from '../crypto/cryptoService'
 import type { SyncAccount, SyncCategory, MergeStats } from './mergeService'
 
 const SESSION_TTL_MS = 120_000 // 2 minutos
@@ -96,15 +96,16 @@ export class SyncServer {
     const ips  = this.getAllLocalIPs()
     const primaryIp = ips[0]
 
-    // QR v2: incluye `ips` (todas las interfaces) y `ip` (primaria) para
-    // compatibilidad hacia atrás con apps móviles v1.
+    // QR v3: igual que v2 (`ips` + `ip` primaria) pero el Bearer ya no es la
+    // key en claro, sino deriveSyncAuthToken(key). Un móvil que vea v<3 sabe
+    // que el desktop es viejo y avisa al usuario en vez de fallar con 401.
     const qrPayload = JSON.stringify({
       ip: primaryIp,        // fallback v1
-      ips,                  // v2 — móvil probará cada una
+      ips,                  // v2+ — móvil probará cada una
       port,
       key: this.sessionKey.toString('base64'),
       exp: this.expiresAt,
-      v: 2
+      v: 3
     })
     const qrData = `pmvault://${Buffer.from(qrPayload).toString('base64')}`
 
@@ -139,6 +140,14 @@ export class SyncServer {
     const authHeader = req.headers['authorization'] ?? ''
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
     if (!this.verifyToken(token)) {
+      if (this.isLegacyRawKeyToken(token)) {
+        // App móvil vieja: mandó la session key en claro (ya quedó expuesta en
+        // la red). Rechazamos y quemamos la sesión para que esa key no sirva.
+        this.respondJson(res, 426, { error: 'client_outdated' })
+        this.emit({ type: 'error', message: 'La app móvil está desactualizada. Actualízala para sincronizar de forma segura.' })
+        void this.stop()
+        return
+      }
       this.respondJson(res, 401, { error: 'unauthorized' })
       return
     }
@@ -154,10 +163,13 @@ export class SyncServer {
 
   private verifyToken(token: string): boolean {
     if (!this.sessionKey) return false
-    const expected = this.sessionKey.toString('base64')
-    const tokBuf = Buffer.from(token)
-    const expBuf = Buffer.from(expected)
-    return tokBuf.length === expBuf.length && timingSafeEqual(tokBuf, expBuf)
+    return safeEqual(token, deriveSyncAuthToken(this.sessionKey))
+  }
+
+  /** ¿El cliente mandó la key en claro (protocolo anterior a QR v3)? */
+  private isLegacyRawKeyToken(token: string): boolean {
+    if (!this.sessionKey) return false
+    return safeEqual(token, this.sessionKey.toString('base64'))
   }
 
   private async handleSync(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -201,6 +213,12 @@ export class SyncServer {
       this.server.close(() => { this.server = null; resolve() })
     })
   }
+}
+
+function safeEqual(a: string, b: string): boolean {
+  const aBuf = Buffer.from(a)
+  const bBuf = Buffer.from(b)
+  return aBuf.length === bBuf.length && timingSafeEqual(aBuf, bBuf)
 }
 
 function readBody(req: IncomingMessage): Promise<string> {

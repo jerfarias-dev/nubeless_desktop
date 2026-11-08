@@ -1,10 +1,10 @@
-# password_manager_2 — Nubeless Desktop
+# nubeless_desktop — Nubeless Desktop
 
 **Electron 29 + React 18 + TypeScript 5 + better-sqlite3.** No es Tauri.
 electron-vite como bundler, Zustand para estado, Tailwind, Lucide.
 
 Es la **fuente de verdad** del par de apps Nubeless. La app móvil Flutter
-(`../password-manager-mobile`) sincroniza contra el servidor de sync de aquí.
+(`../nubeless_mobile`) sincroniza contra el servidor de sync de aquí.
 
 ## Docs
 - `README.md` — completo: features, build, distribución, seguridad, CSV.
@@ -39,7 +39,7 @@ src/
 - La contraseña maestra **nunca** se escribe a disco: solo `salt` y `verify` cifrado en `userData`.
 - `schema_version` en la tabla `meta` (actual: 4). Toda migración nueva en `runMigrations()`, idempotente.
 - El sync aplica **categorías antes que cuentas** (FK). Identidad universal = `uuid` / `category_uuid`, nunca el id autoincrement.
-- Cualquier cambio en formato wire / crypto / QR → actualizar también `../password-manager-mobile`. Ver `../AGENTS.md §8`.
+- Cualquier cambio en formato wire / crypto / QR → actualizar también `../nubeless_mobile`. Ver `../AGENTS.md §8`.
 
 ## Publicación
 `electron-builder.yml` → `appId: mx.jerfarias.nubeless.desktop`, `productName: Nubeless`. Distribución fuera de tiendas: web

@@ -2,7 +2,8 @@ import {
   randomBytes,
   pbkdf2Sync,
   createCipheriv,
-  createDecipheriv
+  createDecipheriv,
+  createHmac
 } from 'node:crypto'
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
@@ -15,6 +16,19 @@ const PBKDF2_ITERATIONS = 600_000
 const PBKDF2_DIGEST = 'sha512'
 const SALT_LENGTH = 32
 const VERIFY_PLAINTEXT = 'PASSWORD_MANAGER_OK'
+/** Etiqueta de dominio del token Bearer del sync. Debe coincidir con mobile. */
+export const SYNC_AUTH_LABEL = 'nubeless-sync-auth-v1'
+
+/**
+ * Token Bearer del sync = base64(HMAC-SHA256(sessionKey, SYNC_AUTH_LABEL)).
+ *
+ * El sync va por HTTP plano: lo que viaje en el header lo ve cualquiera en la
+ * LAN. Por eso NUNCA se manda la session key tal cual (es la clave AES del
+ * payload); se manda un derivado del que no se puede recuperar la clave.
+ */
+export function deriveSyncAuthToken(sessionKey: Buffer): string {
+  return createHmac('sha256', sessionKey).update(SYNC_AUTH_LABEL, 'utf8').digest('base64')
+}
 
 export class CryptoService {
   private derivedKey: Buffer | null = null

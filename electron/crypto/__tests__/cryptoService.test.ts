@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { CryptoService } from '../cryptoService'
+import { CryptoService, deriveSyncAuthToken } from '../cryptoService'
 
 describe('CryptoService — primitivas encrypt/decrypt', () => {
   // Usamos un tmpdir distinto por suite — la clase quiere paths para salt/verify
@@ -146,5 +146,21 @@ describe('CryptoService — formato compatible con móvil (Dart)', () => {
     expect(bytes.length).toBeGreaterThanOrEqual(12 + 16 + 1)
     // El móvil con decryptDesktopFormat lee EXACTAMENTE este layout —
     // si esto cambia, rompe la interop con Flutter.
+  })
+})
+
+describe('deriveSyncAuthToken — token Bearer del sync', () => {
+  // Vector compartido con mobile (test/core/crypto/sync_auth_token_test.dart).
+  // Si cambias el algoritmo o la etiqueta, cambia ambos tests a la vez.
+  const VECTOR_KEY = Buffer.from([...Array(32).keys()]) // 0x00..0x1f
+  const VECTOR_TOKEN = 'Da2X8uSD+oHKKCdiq08F+L5+uS/QBCzTJvg0LwjkPcc='
+
+  test('coincide con el vector de interop', () => {
+    expect(deriveSyncAuthToken(VECTOR_KEY)).toBe(VECTOR_TOKEN)
+  })
+
+  test('nunca es igual a la session key en claro', () => {
+    const key = randomBytes(32)
+    expect(deriveSyncAuthToken(key)).not.toBe(key.toString('base64'))
   })
 })
