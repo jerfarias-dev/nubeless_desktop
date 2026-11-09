@@ -4,6 +4,8 @@ import {
   createAccount,
   updateAccount,
   deleteAccount,
+  getTrash,
+  restoreAccount,
   type AccountRow,
   type AccountInput
 } from '../db/accountRepo'
@@ -35,9 +37,14 @@ function rowToAccount(row: AccountRow, crypto: CryptoService) {
     url: row.url,
     totp_secret: totpDecrypted,
     created_at: row.created_at,
-    updated_at: row.updated_at
+    updated_at: row.updated_at,
+    deleted_at: row.deleted_at
   }
 }
+
+/** Días que una cuenta borrada se muestra en la papelera. La lápida sigue en
+ *  la DB después (el sync la necesita); solo deja de mostrarse. */
+export const TRASH_DAYS = 30
 
 interface AccountFromRenderer {
   id?: number
@@ -108,5 +115,16 @@ export function registerAccountHandlers(crypto: CryptoService): void {
   ipcMain.handle('accounts:delete', (_event, id: number) => {
     if (!crypto.isUnlocked()) throw new Error('Vault locked')
     deleteAccount(id)
+  })
+
+  ipcMain.handle('accounts:getTrash', () => {
+    if (!crypto.isUnlocked()) throw new Error('Vault locked')
+    const since = new Date(Date.now() - TRASH_DAYS * 86_400_000).toISOString()
+    return getTrash(since).map(r => rowToAccount(r, crypto))
+  })
+
+  ipcMain.handle('accounts:restore', (_event, id: number) => {
+    if (!crypto.isUnlocked()) throw new Error('Vault locked')
+    return rowToAccount(restoreAccount(id), crypto)
   })
 }

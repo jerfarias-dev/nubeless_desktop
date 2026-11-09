@@ -7,7 +7,7 @@ import { registerAuthHandlers } from './ipc/auth'
 import { registerAccountHandlers } from './ipc/accounts'
 import { registerCategoryHandlers } from './ipc/categories'
 import { registerGeneratorHandlers } from './ipc/generator'
-import { registerVaultHandlers } from './ipc/vault'
+import { registerVaultHandlers, registerImportHandlers } from './ipc/vault'
 import { registerSyncHandlers } from './ipc/sync'
 import { registerBackupHandlers } from './ipc/backup'
 import { registerTotpHandlers } from './ipc/totp'
@@ -79,8 +79,9 @@ app.whenReady().then(() => {
   registerCategoryHandlers()
   registerGeneratorHandlers()
   registerVaultHandlers(crypto, userDataPath)
+  registerImportHandlers(crypto)
   registerSyncHandlers(crypto)
-  registerBackupHandlers(backup)
+  registerBackupHandlers(backup, crypto)
   registerTotpHandlers()
 
   // Shell open external

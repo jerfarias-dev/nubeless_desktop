@@ -24,7 +24,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getAll:  ()           => invoke<unknown[]>('accounts:getAll'),
     create:  (input: unknown) => invoke<unknown>('accounts:create', input),
     update:  (account: unknown) => invoke<unknown>('accounts:update', account),
-    delete:  (id: number) => invoke<void>('accounts:delete', id)
+    delete:  (id: number) => invoke<void>('accounts:delete', id),
+    getTrash: ()          => invoke<unknown[]>('accounts:getTrash'),
+    restore: (id: number) => invoke<unknown>('accounts:restore', id)
   },
 
   // Categories
@@ -38,6 +40,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Generator
   generator: {
     generate: (length: number)   => invoke<string>('generator:generate', length),
+    passphrase: (opts: unknown)  => invoke<string>('generator:passphrase', opts),
     evaluate: (password: string) => invoke<unknown>('generator:evaluate', password)
   },
 
@@ -46,7 +49,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     exportEncrypted: (path: string)               => invoke<void>('vault:exportEncrypted', path),
     importEncrypted: (path: string)               => invoke<number>('vault:importEncrypted', path),
     exportCSV:       (path: string, safe: boolean) => invoke<number>('vault:exportCSV', path, safe),
-    importCSV:       (path: string)               => invoke<number>('vault:importCSV', path)
+    importCSV:       (path: string)               => invoke<number>('vault:importCSV', path),
+    importPreview:   (path: string)               => invoke<unknown>('vault:importPreview', path),
+    importRun:       (path: string, opts: unknown) => invoke<unknown>('vault:importRun', path, opts)
   },
 
   // Shell & dialogs
@@ -84,7 +89,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     list:       ()                   => invoke<unknown[]>('backup:list'),
     restore:    (fileName: string)   => invoke<number>('backup:restore', fileName),
     delete:     (fileName: string)   => invoke<void>('backup:delete', fileName),
-    openFolder: ()                   => invoke<void>('backup:openFolder')
+    openFolder: ()                   => invoke<void>('backup:openFolder'),
+    exportPortable: (path: string, pwd: string) => invoke<number>('backup:exportPortable', path, pwd),
+    importPortable: (path: string, pwd: string) => invoke<unknown>('backup:importPortable', path, pwd)
   },
 
   // Window controls (solo Windows)

@@ -24,7 +24,9 @@ export default function AccountDialog({ account, onClose }: Props) {
   const { categories, createAccount, updateAccount, setStatus } = useStore()
   const isEdit = !!account
 
-  const defaultCatId = categories[0]?.id ?? 1
+  // "Sin categoría" por defecto (antes era la primera alfabética: "Compras").
+  const defaultCatId =
+    categories.find(c => c.name === 'Sin categoría')?.id ?? categories[0]?.id ?? 1
 
   const [form, setForm] = useState<FormState>({
     platform:    account?.platform    ?? '',
@@ -41,6 +43,8 @@ export default function AccountDialog({ account, onClose }: Props) {
   const [showTotp, setShowTotp]     = useState(false)
   const [strength, setStrength]     = useState<PWStrength | null>(null)
   const [genLength, setGenLength]   = useState(16)
+  const [genMode, setGenMode]       = useState<'password' | 'passphrase'>('password')
+  const [genWords, setGenWords]     = useState(5)
   const [error, setError]           = useState('')
   const [loading, setLoading]       = useState(false)
   // null = sin evaluar; true/false = resultado de looksLikeBase32
@@ -69,8 +73,13 @@ export default function AccountDialog({ account, onClose }: Props) {
     setForm(f => ({ ...f, [key]: value }))
 
   const handleGenerate = async () => {
-    const pwd = await window.electronAPI.generator.generate(genLength)
+    const pwd = genMode === 'password'
+      ? await window.electronAPI.generator.generate(genLength)
+      : await window.electronAPI.generator.passphrase({
+          words: genWords, separator: '-', capitalize: true, addNumber: true,
+        })
     set('password', pwd)
+    setShowPwd(true)
   }
 
   const validate = (): string | null => {
@@ -176,15 +185,40 @@ export default function AccountDialog({ account, onClose }: Props) {
 
             {/* Generator */}
             <div className="mt-2 flex items-center gap-2">
-              <input
-                type="range"
-                min={10}
-                max={48}
-                value={genLength}
-                onChange={e => setGenLength(Number(e.target.value))}
-                className="flex-1 accent-accent"
-              />
-              <span className="w-8 text-center text-xs text-secondary">{genLength}</span>
+              <select
+                value={genMode}
+                onChange={e => setGenMode(e.target.value as 'password' | 'passphrase')}
+                className="rounded-lg bg-surface-input px-2 py-1.5 text-xs text-secondary"
+                title="Tipo de contraseña a generar"
+              >
+                <option value="password">Caracteres</option>
+                <option value="passphrase">Frase</option>
+              </select>
+              {genMode === 'password' ? (
+                <>
+                  <input
+                    type="range"
+                    min={10}
+                    max={48}
+                    value={genLength}
+                    onChange={e => setGenLength(Number(e.target.value))}
+                    className="flex-1 accent-accent"
+                  />
+                  <span className="w-14 text-center text-xs text-secondary">{genLength}</span>
+                </>
+              ) : (
+                <>
+                  <input
+                    type="range"
+                    min={4}
+                    max={8}
+                    value={genWords}
+                    onChange={e => setGenWords(Number(e.target.value))}
+                    className="flex-1 accent-accent"
+                  />
+                  <span className="w-14 text-center text-xs text-secondary">{genWords} palabras</span>
+                </>
+              )}
               <button
                 type="button"
                 onClick={handleGenerate}

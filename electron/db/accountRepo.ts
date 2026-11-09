@@ -103,6 +103,27 @@ export function deleteAccount(id: number): void {
   `).run(now, now, id)
 }
 
+/** Cuentas borradas (lápidas) desde `sinceIso`, más recientes primero. */
+export function getTrash(sinceIso: string): AccountRow[] {
+  return getDb()
+    .prepare(`
+      SELECT * FROM accounts
+      WHERE deleted_at IS NOT NULL AND deleted_at >= ?
+      ORDER BY deleted_at DESC
+    `)
+    .all(sinceIso) as AccountRow[]
+}
+
+/** Restaura una lápida. `updated_at` nuevo para que el merge LWW la propague
+ *  como viva al otro dispositivo (si no, la lápida del otro lado ganaría). */
+export function restoreAccount(id: number): AccountRow {
+  const db = getDb()
+  db.prepare(`
+    UPDATE accounts SET deleted_at = NULL, updated_at = ? WHERE id = ?
+  `).run(new Date().toISOString(), id)
+  return db.prepare('SELECT * FROM accounts WHERE id = ?').get(id) as AccountRow
+}
+
 /** Inserta una fila completa, generando UUID si no viene. Usado por imports y restore. */
 export function insertAccountRaw(account: Omit<AccountRow, 'id'>): void {
   const finalUuid = account.uuid && account.uuid.length > 0 ? account.uuid : randomUUID()

@@ -10,10 +10,22 @@ import CategoryManager from '../components/CategoryManager'
 import SyncDialog from '../components/SyncDialog'
 import SettingsDialog from '../components/SettingsDialog'
 import WinTitleBar from '../components/WinTitleBar'
+import SecurityDashboard from '../components/SecurityDashboard'
+import TrashView from '../components/TrashView'
+import ImportDialog from '../components/ImportDialog'
+import PortableBackupDialog from '../components/PortableBackupDialog'
 import { useIdleLock } from '../hooks/useIdleLock'
 import type { Account } from '../types/electron'
 
 const isWin = window.electronAPI.platform === 'win32'
+
+export type MainView = 'accounts' | 'security' | 'trash'
+
+const VIEW_TITLE: Record<MainView, string> = {
+  accounts: 'Cuentas guardadas',
+  security: 'Seguridad',
+  trash: 'Papelera',
+}
 
 export default function MainPage() {
   const { statusMessage, filteredAccounts, logout, isAuthenticated } = useStore()
@@ -33,6 +45,9 @@ export default function MainPage() {
   const [showCategoryManager, setShowCategoryManager] = useState(false)
   const [showSyncDialog, setShowSyncDialog]           = useState(false)
   const [showSettings, setShowSettings]               = useState(false)
+  const [view, setView]                               = useState<MainView>('accounts')
+  const [showImport, setShowImport]                   = useState(false)
+  const [portableMode, setPortableMode]               = useState<'export' | 'import' | null>(null)
 
   const openCreate = () => { setEditingAccount(undefined); setShowAccountDialog(true) }
   const openEdit   = (a: Account) => { setEditingAccount(a); setShowAccountDialog(true) }
@@ -50,6 +65,10 @@ export default function MainPage() {
         onManageCategories={() => setShowCategoryManager(true)}
         onSync={() => setShowSyncDialog(true)}
         onOpenSettings={() => setShowSettings(true)}
+        onImport={() => setShowImport(true)}
+        onPortableBackup={setPortableMode}
+        view={view}
+        onChangeView={setView}
       />
 
       {/* Main content */}
@@ -69,8 +88,8 @@ export default function MainPage() {
         {/* Toolbar — drag region para arrastrar la ventana */}
         <header className="drag-region flex items-center justify-between border-b border-border px-6 py-3">
           <div className="no-drag">
-            <h1 className="text-base font-semibold text-primary">Cuentas guardadas</h1>
-            <p className="text-xs text-muted">{accounts.length} resultados</p>
+            <h1 className="text-base font-semibold text-primary">{VIEW_TITLE[view]}</h1>
+            {view === 'accounts' && <p className="text-xs text-muted">{accounts.length} resultados</p>}
           </div>
           <button
             onClick={openCreate}
@@ -81,15 +100,21 @@ export default function MainPage() {
           </button>
         </header>
 
-        {/* Filters */}
-        <div className="border-b border-border">
-          <SearchFilters />
-        </div>
+        {view === 'accounts' && (
+          <>
+            {/* Filters */}
+            <div className="border-b border-border">
+              <SearchFilters />
+            </div>
 
-        {/* Table */}
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <AccountTable onEdit={openEdit} />
-        </div>
+            {/* Table */}
+            <div className="flex flex-1 flex-col overflow-hidden">
+              <AccountTable onEdit={openEdit} />
+            </div>
+          </>
+        )}
+        {view === 'security' && <SecurityDashboard onEdit={openEdit} />}
+        {view === 'trash' && <TrashView />}
 
         {/* Status bar */}
         <footer className="flex items-center gap-2 border-t border-border px-4 py-2 text-xs text-muted">
@@ -123,6 +148,12 @@ export default function MainPage() {
       )}
       {showSyncDialog && (
         <SyncDialog onClose={() => setShowSyncDialog(false)} />
+      )}
+      {portableMode && (
+        <PortableBackupDialog mode={portableMode} onClose={() => setPortableMode(null)} />
+      )}
+      {showImport && (
+        <ImportDialog onClose={() => setShowImport(false)} />
       )}
       {showSettings && (
         <SettingsDialog onClose={() => setShowSettings(false)} />

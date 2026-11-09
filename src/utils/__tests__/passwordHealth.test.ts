@@ -4,6 +4,7 @@ import {
   findDuplicateAccountIds,
   computeAccountHealth,
   summarizeHealth,
+  computeVaultReport,
 } from '../passwordHealth'
 import type { Account } from '../../types/electron'
 
@@ -140,5 +141,55 @@ describe('summarizeHealth', () => {
     expect(summary.weak).toBe(0)
     expect(summary.duplicated).toBe(0)
     expect(summary.total).toBe(0)
+  })
+})
+
+// Casos espejo de test/core/utils/vault_report_test.dart (móvil).
+describe('computeVaultReport', () => {
+  const NOW = new Date('2026-11-09T12:00:00.000Z')
+  const mk = (id: number, over: Partial<Account> = {}): Account => ({
+    id, uuid: `u${id}`, platform: `P${id}`, username: 'u', password: 'Fuerte#Clave2026xyz',
+    category_id: 1, is_favorite: false, notes: '', url: 'https://ejemplo.com',
+    totp_secret: 'JBSWY3DPEHPK3PXP', created_at: '2026-10-01T00:00:00.000Z',
+    updated_at: '2026-10-01T00:00:00.000Z', ...over,
+  })
+
+  test('bóveda vacía → 100', () => {
+    const r = computeVaultReport([], NOW)
+    expect(r.score).toBe(100)
+    expect(r.total).toBe(0)
+  })
+
+  test('cuentas sin problemas → 100 y listas vacías', () => {
+    const r = computeVaultReport([mk(1), mk(2, { password: 'Otra$Clave2026abc' })], NOW)
+    expect(r.score).toBe(100)
+    expect(Object.values(r.issues).every(l => l.length === 0)).toBe(true)
+  })
+
+  test('detecta cada problema', () => {
+    const r = computeVaultReport([
+      mk(1, { password: 'abc' }),                                    // weak
+      mk(2, { password: 'Repetida#2026xyzw' }),                      // reused
+      mk(3, { password: 'Repetida#2026xyzw' }),                      // reused
+      mk(4, { password: 'Vieja#Clave2026xy', updated_at: '2025-01-01T00:00:00.000Z' }), // old
+      mk(5, { password: 'Sin2FA#Clave2026x', totp_secret: '' }),     // no2fa
+      mk(6, { password: 'Http#Clave2026xyz', url: 'http://inseguro.com' }), // insecureUrl
+    ], NOW)
+    expect(r.issues.weak.map(a => a.id)).toEqual([1])
+    expect(r.issues.reused.map(a => a.id)).toEqual([2, 3])
+    expect(r.issues.old.map(a => a.id)).toEqual([4])
+    expect(r.issues.no2fa.map(a => a.id)).toEqual([5])
+    expect(r.issues.insecureUrl.map(a => a.id)).toEqual([6])
+    // penalización: 0.5 + 0.4 + 0.4 + 0.15 + 0.1 + 0.1 = 1.65 → 100*(1-1.65/6) = 72.5 → 73
+    expect(r.score).toBe(73)
+  })
+
+  test('la penalización por cuenta tiene tope de 1', () => {
+    const r = computeVaultReport([
+      mk(1, { password: 'abc', totp_secret: '', url: 'http://x.com', updated_at: '2020-01-01T00:00:00.000Z' }),
+      mk(2, { password: 'abc' }),
+    ], NOW)
+    // cuenta 1: weak+reused+old+no2fa+http = 1.25 → 1; cuenta 2: weak+reused = 0.9
+    expect(r.score).toBe(5)
   })
 })

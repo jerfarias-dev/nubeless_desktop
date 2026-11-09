@@ -82,3 +82,69 @@ export function summarizeHealth(accounts: Account[]): { weak: number; duplicated
   }
   return { weak, duplicated, total: accounts.length }
 }
+
+// ─── Panel de seguridad ──────────────────────────────────────────────────────
+// Espejo de lib/core/utils/vault_report.dart (móvil). Si cambias una regla o
+// un peso, cámbialo en los dos lados: los tests usan los mismos casos.
+
+/** Días a partir de los cuales una contraseña se considera vieja. */
+export const OLD_PASSWORD_DAYS = 365
+
+export type IssueKind = 'weak' | 'reused' | 'old' | 'no2fa' | 'insecureUrl'
+
+export interface VaultReport {
+  /** 0–100. 100 = ninguna cuenta con problemas. */
+  score: number
+  total: number
+  /** Cuentas afectadas por cada problema (una cuenta puede salir en varias). */
+  issues: Record<IssueKind, Account[]>
+}
+
+/** Peso de cada problema al restar puntos a una cuenta (máximo 1 por cuenta). */
+const ISSUE_WEIGHT: Record<IssueKind, number> = {
+  weak: 0.5,
+  reused: 0.4,
+  old: 0.15,
+  no2fa: 0.1,
+  insecureUrl: 0.1,
+}
+
+function daysSince(iso: string, now: Date): number {
+  const t = Date.parse(iso)
+  if (Number.isNaN(t)) return 0
+  return (now.getTime() - t) / 86_400_000
+}
+
+/**
+ * Reporte completo de la bóveda. `now` es inyectable para tests.
+ *  - weak: evalStrength(...).isWeak
+ *  - reused: la contraseña la comparte con al menos otra cuenta
+ *  - old: más de OLD_PASSWORD_DAYS desde `updated_at`
+ *  - no2fa: sin secreto TOTP
+ *  - insecureUrl: la URL empieza con http:// (no https)
+ */
+export function computeVaultReport(accounts: Account[], now: Date = new Date()): VaultReport {
+  const issues: Record<IssueKind, Account[]> = {
+    weak: [], reused: [], old: [], no2fa: [], insecureUrl: [],
+  }
+  if (accounts.length === 0) return { score: 100, total: 0, issues }
+
+  const health = computeAccountHealth(accounts)
+  let penalty = 0
+
+  for (const a of accounts) {
+    const h = health.get(a.id)
+    const found: IssueKind[] = []
+    if (h?.isWeak) found.push('weak')
+    if (h?.isDuplicate) found.push('reused')
+    if (daysSince(a.updated_at, now) > OLD_PASSWORD_DAYS) found.push('old')
+    if (!a.totp_secret?.trim()) found.push('no2fa')
+    if (/^http:\/\//i.test(a.url?.trim() ?? '')) found.push('insecureUrl')
+
+    for (const k of found) issues[k].push(a)
+    penalty += Math.min(1, found.reduce((s, k) => s + ISSUE_WEIGHT[k], 0))
+  }
+
+  const score = Math.round(100 * (1 - penalty / accounts.length))
+  return { score: Math.max(0, Math.min(100, score)), total: accounts.length, issues }
+}

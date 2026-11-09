@@ -13,6 +13,8 @@ export interface Account {
   totp_secret: string
   created_at: string
   updated_at: string
+  /** Solo viene en cuentas de la papelera (accounts.getTrash). */
+  deleted_at?: string | null
 }
 
 export interface AccountInput {
@@ -46,6 +48,14 @@ export interface CategoryInput {
   icon?: string
 }
 
+/** Ver electron/generator/passphrase.ts */
+export interface PassphraseOptions {
+  words: number
+  separator: string
+  capitalize: boolean
+  addNumber: boolean
+}
+
 export interface PasswordStrength {
   score: 0 | 1 | 2 | 3 | 4
   label: 'Muy débil' | 'Débil' | 'Regular' | 'Fuerte' | 'Muy fuerte'
@@ -72,6 +82,22 @@ export type SyncEventType =
   | { type: 'merged'; stats: SyncMergeStats }
   | { type: 'expired' }
   | { type: 'error'; message: string }
+
+export interface ImportPreview {
+  format: string
+  formatLabel: string
+  total: number
+  duplicates: number
+  skipped: number
+  withTotp: number
+  sourceCategories: string[]
+}
+
+export interface ImportOptions {
+  categoryMode: 'source' | 'fixed'
+  categoryId: number
+  skipDuplicates: boolean
+}
 
 export interface BackupMeta {
   fileName: string
@@ -107,6 +133,8 @@ export interface ElectronAPI {
     create(input: AccountInput):     Promise<Account>
     update(account: Account):        Promise<Account>
     delete(id: number):              Promise<void>
+    getTrash():                      Promise<Account[]>
+    restore(id: number):             Promise<Account>
   }
   categories: {
     getAll():                        Promise<Category[]>
@@ -116,6 +144,7 @@ export interface ElectronAPI {
   }
   generator: {
     generate(length: number):        Promise<string>
+    passphrase(opts: PassphraseOptions): Promise<string>
     evaluate(password: string):      Promise<PasswordStrength>
   }
   vault: {
@@ -123,6 +152,8 @@ export interface ElectronAPI {
     importEncrypted(path: string):              Promise<number>
     exportCSV(path: string, safe: boolean):     Promise<number>
     importCSV(path: string):                    Promise<number>
+    importPreview(path: string):                Promise<ImportPreview>
+    importRun(path: string, opts: ImportOptions): Promise<{ imported: number; skippedDuplicates: number; skipped: number }>
   }
   sync: {
     start(): Promise<{ qrData: string; expiresAt: number; ips: string[] }>
@@ -139,6 +170,8 @@ export interface ElectronAPI {
     restore(fileName: string):         Promise<number>
     delete(fileName: string):          Promise<void>
     openFolder():                      Promise<void>
+    exportPortable(path: string, password: string): Promise<number>
+    importPortable(path: string, password: string): Promise<SyncDirectionStats>
   }
   shell: {
     openExternal(url: string): Promise<void>

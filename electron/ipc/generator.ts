@@ -1,5 +1,6 @@
 import { ipcMain } from 'electron'
-import { randomBytes } from 'node:crypto'
+import { randomInt } from 'node:crypto'
+import { generatePassphrase, type PassphraseOptions } from '../generator/passphrase'
 
 export interface PasswordStrength {
   score: number          // 0-4
@@ -13,9 +14,9 @@ const LOWER  = 'abcdefghijklmnopqrstuvwxyz'
 const DIGITS = '0123456789'
 const SYMBOLS = '!@#$%^&*()_+-=[]{}|;:,.<>?'
 
+/** Entero uniforme en [0, max). randomInt no tiene el sesgo de `bytes % max`. */
 function secureRandom(max: number): number {
-  const bytes = randomBytes(4)
-  return bytes.readUInt32BE(0) % max
+  return randomInt(max)
 }
 
 function generatePassword(length: number): string {
@@ -80,6 +81,10 @@ export function registerGeneratorHandlers(): void {
   ipcMain.handle('generator:generate', (_event, length: number) => {
     const safeLength = Math.max(10, Math.min(48, length))
     return generatePassword(safeLength)
+  })
+
+  ipcMain.handle('generator:passphrase', (_event, opts: Partial<PassphraseOptions>) => {
+    return generatePassphrase(opts ?? {})
   })
 
   ipcMain.handle('generator:evaluate', (_event, password: string) => {

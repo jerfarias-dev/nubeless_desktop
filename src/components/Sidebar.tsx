@@ -2,21 +2,26 @@ import { useState } from 'react'
 import {
   ShieldCheck, LogOut, Download, Upload,
   FileDown, FileUp, Settings, Tags, ChevronDown, ChevronRight, Smartphone,
-  AlertTriangle, Repeat
+  AlertTriangle, Repeat, KeyRound, Shield, Trash2
 } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import { summarizeHealth } from '../utils/passwordHealth'
+import type { MainView } from '../pages/MainPage'
 
 interface Props {
   onManageCategories(): void
   onSync(): void
   onOpenSettings(): void
+  onImport(): void
+  onPortableBackup(mode: 'export' | 'import'): void
+  view: MainView
+  onChangeView(view: MainView): void
 }
 
 const isMac = window.electronAPI.platform === 'darwin'
 const isWin = window.electronAPI.platform === 'win32'
 
-export default function Sidebar({ onManageCategories, onSync, onOpenSettings }: Props) {
+export default function Sidebar({ onManageCategories, onSync, onOpenSettings, onImport, onPortableBackup, view, onChangeView }: Props) {
   const { logout, accounts, categories, setStatus } = useStore()
   const [vaultOpen, setVaultOpen] = useState(false)
 
@@ -60,20 +65,6 @@ export default function Sidebar({ onManageCategories, onSync, onOpenSettings }: 
     }
   }
 
-  const handleImportCSV = async () => {
-    const path = await window.electronAPI.dialog.openFile([
-      { name: 'CSV', extensions: ['csv'] }
-    ])
-    if (!path) return
-    try {
-      const count = await window.electronAPI.vault.importCSV(path)
-      await useStore.getState().loadAccounts()
-      setStatus({ text: `${count} cuentas importadas desde CSV`, type: 'success' })
-    } catch {
-      setStatus({ text: 'Error al importar CSV', type: 'error' })
-    }
-  }
-
   const totalFavs = accounts.filter(a => a.is_favorite).length
   const health = summarizeHealth(accounts)
 
@@ -100,7 +91,11 @@ export default function Sidebar({ onManageCategories, onSync, onOpenSettings }: 
 
         {/* Salud — solo aparece si hay algo que reportar */}
         {(health.weak > 0 || health.duplicated > 0) && (
-          <div className="mt-2 grid grid-cols-2 gap-2">
+          <button
+            onClick={() => onChangeView('security')}
+            className="mt-2 grid w-full grid-cols-2 gap-2"
+            title="Ver el panel de seguridad"
+          >
             {health.weak > 0 && (
               <div
                 className="flex items-center gap-1.5 rounded-lg bg-amber-500/10 px-2.5 py-1.5"
@@ -119,12 +114,31 @@ export default function Sidebar({ onManageCategories, onSync, onOpenSettings }: 
                 <span className="text-xs font-medium text-red-300">{health.duplicated} repetidas</span>
               </div>
             )}
-          </div>
+          </button>
         )}
       </div>
 
+      {/* Vistas */}
+      <div className="border-b border-border px-3 py-2 space-y-0.5">
+        {([
+          ['accounts', 'Cuentas', KeyRound],
+          ['security', 'Seguridad', Shield],
+          ['trash', 'Papelera', Trash2],
+        ] as const).map(([id, label, Icon]) => (
+          <button
+            key={id}
+            onClick={() => onChangeView(id)}
+            className={`flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition ${
+              view === id ? 'bg-accent/20 text-primary' : 'text-secondary hover:bg-surface-hover hover:text-primary'
+            }`}
+          >
+            <Icon className="h-4 w-4" /> {label}
+          </button>
+        ))}
+      </div>
+
       {/* Categories */}
-      <nav className="flex-1 overflow-y-auto px-3 py-3">
+      <nav className="min-h-[7rem] flex-1 overflow-y-auto px-3 py-3">
         <p className="mb-1 px-1 text-xs font-medium uppercase tracking-wider text-muted">
           Categorías
         </p>
@@ -133,9 +147,12 @@ export default function Sidebar({ onManageCategories, onSync, onOpenSettings }: 
           return (
             <button
               key={cat.id}
-              onClick={() => useStore.getState().setFilter('categoryId',
-                useStore.getState().filters.categoryId === cat.id ? null : cat.id
-              )}
+              onClick={() => {
+                onChangeView('accounts')
+                useStore.getState().setFilter('categoryId',
+                  useStore.getState().filters.categoryId === cat.id ? null : cat.id
+                )
+              }}
               className={`flex w-full items-center justify-between rounded-lg px-3 py-1.5 text-sm transition ${
                 useStore.getState().filters.categoryId === cat.id
                   ? 'bg-accent/20 text-primary'
@@ -156,7 +173,7 @@ export default function Sidebar({ onManageCategories, onSync, onOpenSettings }: 
       </nav>
 
       {/* Bottom actions */}
-      <div className="border-t border-border px-3 py-3 space-y-1">
+      <div className="max-h-[55%] shrink-0 overflow-y-auto border-t border-border px-3 py-3 space-y-1">
         {/* Vault submenu */}
         <button
           onClick={() => setVaultOpen(v => !v)}
@@ -171,6 +188,12 @@ export default function Sidebar({ onManageCategories, onSync, onOpenSettings }: 
 
         {vaultOpen && (
           <div className="ml-3 space-y-0.5 border-l border-border pl-3">
+            <button onClick={() => onPortableBackup('export')} className="sidebar-sub-btn">
+              <Download className="h-3.5 w-3.5" /> Exportar respaldo
+            </button>
+            <button onClick={() => onPortableBackup('import')} className="sidebar-sub-btn">
+              <Upload className="h-3.5 w-3.5" /> Importar respaldo
+            </button>
             <button onClick={handleExportEnc} className="sidebar-sub-btn">
               <Download className="h-3.5 w-3.5" /> Exportar .enc
             </button>
@@ -180,8 +203,8 @@ export default function Sidebar({ onManageCategories, onSync, onOpenSettings }: 
             <button onClick={handleExportCSV} className="sidebar-sub-btn">
               <FileDown className="h-3.5 w-3.5" /> Exportar CSV
             </button>
-            <button onClick={handleImportCSV} className="sidebar-sub-btn">
-              <FileUp className="h-3.5 w-3.5" /> Importar CSV
+            <button onClick={onImport} className="sidebar-sub-btn">
+              <FileUp className="h-3.5 w-3.5" /> Importar de otro gestor
             </button>
           </div>
         )}
