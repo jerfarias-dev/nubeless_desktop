@@ -2,7 +2,9 @@
 
 Gestor de contraseñas local para escritorio. Los datos se almacenan **únicamente en tu equipo**, cifrados con AES-256-GCM. Ningún dato sale a Internet.
 
-Descargas (`.dmg` / `.exe`): [GitHub Releases](https://github.com/jerfarias-dev/nubeless_desktop/releases).
+Descargas:
+- **Windows:** [Microsoft Store](https://apps.microsoft.com/detail/9pb4npst9vmq) (recomendado: firmada por Microsoft y con actualizaciones automáticas).
+- **macOS:** `.dmg` en [GitHub Releases](https://github.com/jerfarias-dev/nubeless_desktop/releases).
 
 ## Características
 
