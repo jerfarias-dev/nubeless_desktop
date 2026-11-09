@@ -11,7 +11,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     isFirstTime:    ()           => invoke<boolean>('auth:isFirstTime'),
     createMaster:   (pwd: string) => invoke<void>('auth:createMaster', pwd),
     login:          (pwd: string) => invoke<boolean>('auth:login', pwd),
-    logout:         ()           => invoke<void>('auth:logout'),
+    logout:         ()           => { ipcRenderer.send('auth:locked'); return invoke<void>('auth:logout') },
+    onLockRequested: (cb: () => void) => {
+      ipcRenderer.on('auth:lockRequested', () => cb())
+      return () => ipcRenderer.removeAllListeners('auth:lockRequested')
+    },
     verifyPassword: (pwd: string) => invoke<boolean>('auth:verifyPassword', pwd),
     changeMasterPassword: (oldPwd: string, newPwd: string) =>
       invoke<{ ok: true } | { ok: false; reason: 'wrong-old-password' }>(
@@ -92,6 +96,27 @@ contextBridge.exposeInMainWorld('electronAPI', {
     openFolder: ()                   => invoke<void>('backup:openFolder'),
     exportPortable: (path: string, pwd: string) => invoke<number>('backup:exportPortable', path, pwd),
     importPortable: (path: string, pwd: string) => invoke<unknown>('backup:importPortable', path, pwd)
+  },
+
+  // Búsqueda rápida (ventana #quick + atajo global)
+  quick: {
+    setEnabled: (enabled: boolean) => invoke<boolean>('quick:setEnabled', enabled),
+    hide:       ()                 => invoke<void>('quick:hide'),
+    onOpen: (cb: () => void) => {
+      ipcRenderer.on('quick:open', () => cb())
+      return () => ipcRenderer.removeAllListeners('quick:open')
+    }
+  },
+
+  // Portapapeles con auto-borrado (proceso main)
+  clipboard: {
+    copySecret:  (text: string) => invoke<void>('clipboard:copySecret', text),
+    clearSecret: ()             => invoke<void>('clipboard:clearSecret')
+  },
+
+  // Kit de emergencia (PDF)
+  kit: {
+    exportPdf: (path: string) => invoke<void>('kit:exportPdf', path)
   },
 
   // Window controls (solo Windows)

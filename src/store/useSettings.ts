@@ -17,10 +17,13 @@ interface SettingsState {
   // --- Seguridad ---
   /** Minutos de inactividad antes del auto-bloqueo. 0 = desactivado. */
   autoLockMinutes: number
+  /** Atajo global Ctrl/Cmd+Shift+Espacio para la búsqueda rápida. */
+  quickSearchEnabled: boolean
 
   // --- Acciones ---
   setTheme(mode: ThemeMode): void
   setAutoLockMinutes(minutes: number): void
+  setQuickSearchEnabled(enabled: boolean): void
 }
 
 /** Opciones disponibles para el auto-bloqueo (en minutos; 0 = desactivado). */
@@ -31,8 +34,10 @@ export const useSettings = create<SettingsState>()(
     (set) => ({
       theme: 'dark',
       autoLockMinutes: 10,
+      quickSearchEnabled: true,
       setTheme: (mode) => set({ theme: mode }),
       setAutoLockMinutes: (minutes) => set({ autoLockMinutes: minutes }),
+      setQuickSearchEnabled: (enabled) => set({ quickSearchEnabled: enabled }),
     }),
     { name: 'pm-settings' }
   )

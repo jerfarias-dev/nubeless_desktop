@@ -156,12 +156,14 @@ export const useStore = create<AppState>((set, get) => ({
   // --- Clipboard ---
 
   copyToClipboard(text, label) {
-    navigator.clipboard.writeText(text)
+    // El copiado y el borrado a los 15 s los hace el proceso main
+    // (electron/clipboard.ts): así el borrado ocurre aunque se cierre la ventana
+    // y no pisa algo que el usuario haya copiado después.
+    void window.electronAPI.clipboard.copySecret(text)
     const { clipboardTimer } = get()
     if (clipboardTimer) clearTimeout(clipboardTimer)
 
-    const timer = setTimeout(async () => {
-      await navigator.clipboard.writeText('')
+    const timer = setTimeout(() => {
       set({ statusMessage: null, clipboardTimer: null })
     }, 15_000)
 

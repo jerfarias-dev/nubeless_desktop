@@ -124,6 +124,8 @@ export interface ElectronAPI {
     createMaster(pwd: string): Promise<void>
     login(pwd: string):        Promise<boolean>
     logout():                  Promise<void>
+    /** Bloqueo pedido desde fuera de la ventana (bandeja del sistema). */
+    onLockRequested(cb: () => void): () => void
     verifyPassword(pwd: string): Promise<boolean>
     changeMasterPassword(oldPwd: string, newPwd: string):
       Promise<{ ok: true } | { ok: false; reason: 'wrong-old-password' }>
@@ -175,6 +177,19 @@ export interface ElectronAPI {
   }
   shell: {
     openExternal(url: string): Promise<void>
+  }
+  quick: {
+    /** Devuelve false si el atajo global no se pudo registrar (lo usa otra app). */
+    setEnabled(enabled: boolean): Promise<boolean>
+    hide(): Promise<void>
+    onOpen(cb: () => void): () => void
+  }
+  clipboard: {
+    copySecret(text: string): Promise<void>
+    clearSecret(): Promise<void>
+  }
+  kit: {
+    exportPdf(path: string): Promise<void>
   }
   dialog: {
     saveFile(filters: { name: string; extensions: string[] }[]): Promise<string | null>

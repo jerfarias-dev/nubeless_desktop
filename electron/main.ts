@@ -12,6 +12,9 @@ import { registerSyncHandlers } from './ipc/sync'
 import { registerBackupHandlers } from './ipc/backup'
 import { registerTotpHandlers } from './ipc/totp'
 import { ipcMain } from 'electron'
+import { registerQuickSearch, hideQuickSearch } from './quickSearch'
+import { clearSecretNow } from './clipboard'
+import { exportEmergencyKit } from './kit/emergencyKit'
 
 const isDev = !app.isPackaged
 
@@ -83,6 +86,12 @@ app.whenReady().then(() => {
   registerSyncHandlers(crypto)
   registerBackupHandlers(backup, crypto)
   registerTotpHandlers()
+  registerQuickSearch(crypto)
+
+  // Al bloquear: ocultar la búsqueda rápida y vaciar un secreto copiado.
+  ipcMain.on('auth:locked', () => { hideQuickSearch(); clearSecretNow() })
+
+  ipcMain.handle('kit:exportPdf', (_event, targetPath: string) => exportEmergencyKit(targetPath))
 
   // Shell open external
   ipcMain.handle('shell:openExternal', (_event, url: string) => {

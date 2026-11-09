@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   X, Shield, Archive, Info, Lock, KeyRound, Clock, Smartphone,
   Plus, FolderOpen, RotateCcw, Trash2, FileLock2, Loader2,
-  Sun, Moon
+  Sun, Moon, Search, FileText
 } from 'lucide-react'
 import { useSettings, AUTO_LOCK_OPTIONS } from '../store/useSettings'
 import { useStore } from '../store/useStore'
@@ -88,6 +88,37 @@ export default function SettingsDialog({ onClose }: Props) {
   )
 }
 
+const isMacPlatform = window.electronAPI.platform === 'darwin'
+
+function QuickSearchToggle() {
+  const enabled = useSettings(s => s.quickSearchEnabled)
+  const setEnabled = useSettings(s => s.setQuickSearchEnabled)
+  const [conflict, setConflict] = useState(false)
+  return (
+    <div className="space-y-2">
+      <div className="flex gap-2">
+        {[true, false].map(v => (
+          <button
+            key={String(v)}
+            onClick={async () => {
+              setEnabled(v)
+              setConflict(v ? !(await window.electronAPI.quick.setEnabled(true)) : false)
+            }}
+            className={`rounded-lg px-3 py-1.5 text-sm transition ${
+              enabled === v ? 'bg-accent text-primary' : 'bg-surface-input text-secondary hover:text-primary'
+            }`}
+          >
+            {v ? 'Activada' : 'Desactivada'}
+          </button>
+        ))}
+      </div>
+      {conflict && (
+        <p className="text-xs text-amber-300">Otra aplicación ya usa ese atajo; ciérrala o desactívalo allí.</p>
+      )}
+    </div>
+  )
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Sección: Seguridad
 // ─────────────────────────────────────────────────────────────────────────────
@@ -122,6 +153,38 @@ function SecuritySection() {
             </button>
           ))}
         </div>
+      </SettingCard>
+
+      {/* Búsqueda rápida */}
+      <SettingCard
+        icon={Search}
+        title="Búsqueda rápida"
+        description={`Abre un buscador desde cualquier app con ${isMacPlatform ? 'Cmd' : 'Ctrl'}+Shift+Espacio para copiar una contraseña sin abrir la ventana. Solo funciona con la bóveda desbloqueada.`}
+      >
+        <QuickSearchToggle />
+      </SettingCard>
+
+      {/* Kit de emergencia */}
+      <SettingCard
+        icon={FileText}
+        title="Kit de emergencia"
+        description="PDF imprimible con instrucciones para recuperar tu bóveda y un espacio para escribir a mano tu contraseña maestra. No incluye ninguna contraseña."
+      >
+        <button
+          onClick={async () => {
+            const path = await window.electronAPI.dialog.saveFile([{ name: 'PDF', extensions: ['pdf'] }])
+            if (!path) return
+            try {
+              await window.electronAPI.kit.exportPdf(path)
+              setStatus({ text: 'Kit de emergencia guardado', type: 'success' })
+            } catch {
+              setStatus({ text: 'No se pudo generar el PDF', type: 'error' })
+            }
+          }}
+          className="rounded-lg bg-surface-input px-4 py-2 text-sm text-primary hover:bg-surface-hover"
+        >
+          Generar PDF…
+        </button>
       </SettingCard>
 
       {/* Cambiar contraseña maestra — FUNCIONAL */}
