@@ -15,12 +15,19 @@ Descargas:
 - 📤 Exportación / importación en formato `.enc` (cifrado) y CSV
 - 📲 Sincronización WiFi local con la app móvil vía QR (sin Internet)
 - 🪟 Interfaz sin bordes nativos en macOS (traffic lights integrados)
+- 🛡 Panel de seguridad: puntuación y contraseñas débiles, repetidas, viejas, sin 2FA o sin HTTPS
+- 🗑 Papelera: restaura cuentas borradas durante 30 días
+- 🎲 Frases de contraseña en español (lista propia de 2048 palabras)
+- 📥 Importar de Bitwarden, 1Password, Chrome/Edge, Firefox y KeePass
+- 💾 Respaldo portátil `.nubeless` cifrado con contraseña propia (se abre también en el móvil)
+- ⚡ Búsqueda rápida con Ctrl/Cmd+Shift+Espacio desde cualquier app + icono en la bandeja
+- 🧾 Kit de emergencia en PDF
 
 ## Stack
 
 | Capa | Tecnología |
 |------|-----------|
-| Shell | Electron 29 |
+| Shell | Electron 45 |
 | UI | React 18 + TypeScript 5 |
 | Bundler | electron-vite 2 + Vite 5 |
 | Estilos | Tailwind CSS 3 |
@@ -32,14 +39,12 @@ Descargas:
 
 ## Requisitos
 
-- Node.js 20 o 22 (LTS)
+- Node.js 22 o superior (lo exige better-sqlite3 13)
 - npm 10+
 
-> ⚠️ Evita Node 24+: `better-sqlite3` compila desde código fuente si no hay binario
-> prebuilt para tu versión de Node, y las versiones muy nuevas suelen romper la
-> build nativa (headers de V8 con C++20 que node-gyp/clang no siempre soportan).
-> Con Node 20/22 LTS instala el binario precompilado sin problema. Si usas `nvm`:
-> `nvm install 22 && nvm use 22`.
+> `better-sqlite3` 13 trae binarios N-API precompilados para macOS, Windows y
+> Linux: no se compila nada al instalar y funciona con cualquier versión de
+> Electron. Electron descarga su binario la primera vez que se ejecuta.
 
 ## Desarrollo
 
