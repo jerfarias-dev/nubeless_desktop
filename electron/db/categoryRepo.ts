@@ -77,7 +77,9 @@ export function deleteCategory(id: number): void {
   const uncategorized = db.prepare("SELECT id FROM categories WHERE name = 'Sin categoría'").get() as { id: number }
   const now = new Date().toISOString()
   // Reasignar cuentas y marcar la categoría como borrada
-  db.prepare('UPDATE accounts SET category_id = ? WHERE category_id = ?').run(uncategorized.id, id)
+  // updated_at nuevo: sin él, la reasignación no viaja por el sync y el otro
+  // dispositivo deja las cuentas apuntando a la categoría borrada.
+  db.prepare('UPDATE accounts SET category_id = ?, updated_at = ? WHERE category_id = ?').run(uncategorized.id, now, id)
   db.prepare('UPDATE categories SET deleted_at = ?, updated_at = ? WHERE id = ?').run(now, now, id)
 }
 
